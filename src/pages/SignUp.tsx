@@ -98,7 +98,7 @@ export function SignUp() {
           <img
             src={illustration}
             alt="Eco-friendly community"
-            className="w-full max-w-[300px] rounded-2xl shadow-xl object-cover hover:scale-[1.02] transition-transform duration-500"
+            className="w-1/2 object-contain mix-blend-multiply hover:scale-[1.02] transition-transform duration-500"
           />
         </div>
       </aside>
