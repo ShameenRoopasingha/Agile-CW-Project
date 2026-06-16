@@ -1,0 +1,9 @@
+/*
+ * App-level styles
+ * ────────────────────────────────────────────────────────────────────────
+ * Component-specific utilities that don't belong in index.css (global)
+ * or in Tailwind classes.  Keep this lean — prefer Tailwind utilities
+ * when possible.
+ */
+
+/* Currently empty – all styling is handled via Tailwind utility classes. */
