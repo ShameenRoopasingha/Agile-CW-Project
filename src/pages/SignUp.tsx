@@ -283,7 +283,7 @@ export function SignUp() {
               {/* Submit */}
               <Button
                 type="submit"
-                className="flex items-center justify-center gap-3 !bg-[#003829] hover:!bg-[#00291e] !text-white shadow-lg shadow-[#003829]/20 hover:shadow-xl hover:shadow-[#003829]/30 hover:-translate-y-0.5 transition-all py-4 rounded-xl text-base"
+                className="flex items-center justify-center gap-3 !bg-[#629955] !text-white font-bold !shadow-[6px_6px_12px_#4e7a44,-6px_-6px_12px_#76b866] active:!shadow-[inset_4px_4px_8px_#4e7a44,inset_-4px_-4px_8px_#76b866] transition-all duration-300 py-4 rounded-xl text-lg border-none"
                 fullWidth
               >
                 Register Premises
