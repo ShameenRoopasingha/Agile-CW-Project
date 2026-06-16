@@ -22,8 +22,8 @@ export const Layout = ({ children }: LayoutProps) => {
     <>
       <Navbar />
 
-      {/* pt-16 = 64px to clear the sticky navbar, pb-14 to clear the fixed footer */}
-      <main className="min-h-screen flex flex-col pt-16 pb-14">{children}</main>
+      {/* pt-16 = 64px to clear the sticky navbar, pb-28/16 to clear the fixed footer */}
+      <main className="min-h-screen flex flex-col pt-16 pb-28 sm:pb-16">{children}</main>
 
       <footer className="fixed bottom-0 left-0 right-0 z-40 border-t border-blue-gray-100 bg-white py-3 px-4 sm:px-8 text-sm text-blue-gray-600">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-2">

@@ -64,7 +64,7 @@ export function SignUp() {
 
       // TODO: call actual registration API here
       console.log("Validation passed! Payload:", Object.fromEntries(formData));
-      
+
     } catch (err: any) {
       // Display errors caught during validation
       setErrorMsg(err.message || "An unexpected error occurred during registration.");
@@ -72,13 +72,12 @@ export function SignUp() {
   };
 
   return (
-    <div className="flex-grow flex min-h-[calc(100vh-64px)] bg-[#f8fafc]">
+    <div className="flex-grow flex min-h-[calc(100vh-64px)] bg-[#e6e9ef]">
       {/* ─── Left panel: branding illustration (desktop only) ─── */}
       <aside
-        className="hidden lg:flex fixed left-0 top-16 bottom-0 w-1/2 flex-col items-center justify-center text-center px-12 py-12 overflow-y-auto z-10 custom-scrollbar"
-        style={{ backgroundColor: BRAND.panelBg }}
+        className="hidden lg:flex fixed left-0 top-16 bottom-0 w-1/2 flex-col items-center justify-center text-center px-12 py-12 overflow-hidden z-10"
       >
-        <div className="max-w-md flex flex-col items-center justify-center">
+        <div className="max-w-md flex-shrink-0 flex flex-col items-center justify-center mt-10">
           <Typography
             variant="h3"
             color="blue-gray"
@@ -94,25 +93,34 @@ export function SignUp() {
             economy. Register your premises today to manage waste collection and
             track environmental impact.
           </Typography>
-
-          <img
-            src={illustration}
-            alt="Eco-friendly community"
-            className="w-1/2 object-contain mix-blend-multiply hover:scale-[1.02] transition-transform duration-500"
-          />
         </div>
+
+        <img
+          src={illustration}
+          alt="Eco-friendly community"
+          className="w-full flex-1 min-h-0 mt-4 object-contain mix-blend-multiply hover:scale-[1.02] transition-transform duration-500"
+        />
       </aside>
 
       {/* ─── Right panel: registration form ─── */}
-      <section className="w-full lg:w-1/2 lg:ml-auto flex flex-col items-center justify-center px-4 py-12 sm:px-8 md:px-12 lg:px-20">
-        <Card className="w-full max-w-[560px] shadow-2xl shadow-blue-gray-900/5 border border-white rounded-3xl bg-white">
-          <CardBody className="p-8 sm:p-12">
-            <Typography variant="h4" color="blue-gray" className="mb-2 font-bold text-3xl">
+      <section className="w-full lg:w-1/2 lg:ml-auto flex flex-col items-center justify-center px-4 py-8 sm:py-12 sm:px-8 md:px-12 lg:px-20">
+        <Card className="w-full max-w-[560px] bg-[#e6e9ef] shadow-[16px_16px_32px_#c4c7cc,-16px_-16px_32px_#ffffff] rounded-2xl sm:rounded-3xl border-none">
+          <CardBody className="p-6 sm:p-12">
+            <Typography variant="h4" color="blue-gray" className="mb-2 font-bold text-2xl sm:text-3xl">
               Create an Account
             </Typography>
-            <Typography color="gray" className="mb-8 font-normal text-base">
+            <Typography color="gray" className="mb-6 font-normal text-base">
               Enter your property details below to get started.
             </Typography>
+
+            {/* Mobile-only illustration */}
+            <div className="flex justify-center lg:hidden mb-8">
+              <img
+                src={illustration}
+                alt="Eco-friendly community"
+                className="w-full max-w-[220px] object-contain mix-blend-multiply"
+              />
+            </div>
 
             {/* ── Error banner (MT Alert) ── */}
             {errorMsg && (
@@ -139,7 +147,7 @@ export function SignUp() {
 
             {/* ── Registration form ── */}
             <form onSubmit={handleSubmit} className="flex flex-col">
-              
+
               {/* ── SECTION: Property Details ── */}
               <div className="mb-6 flex items-center">
                 <Typography variant="h6" color="blue-gray" className="font-semibold text-sm tracking-wide uppercase">
@@ -149,7 +157,7 @@ export function SignUp() {
               </div>
 
               <div className="flex flex-col gap-6 mb-10">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-6">
                   {/* Assessment Number */}
                   <div>
                     <Input
@@ -159,6 +167,7 @@ export function SignUp() {
                       placeholder="e.g., 1234567890"
                       icon={<BuildingOffice2Icon className="h-5 w-5 text-gray-400" />}
                       crossOrigin={undefined}
+                      className="!bg-white"
                     />
                     <Typography variant="small" color="gray" className="mt-2 text-xs">
                       10-digit number on your municipal tax receipt.
@@ -174,13 +183,14 @@ export function SignUp() {
                       placeholder="e.g., A.B. Perera"
                       icon={<UserIcon className="h-5 w-5 text-gray-400" />}
                       crossOrigin={undefined}
+                      className="!bg-white"
                     />
                   </div>
                 </div>
 
                 {/* Home Town + Landmark */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  <Select label="Home Town">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-6">
+                  <Select label="Home Town" className="!bg-white">
                     {HOME_TOWNS.map((town) => (
                       <Option key={town.value} value={town.value}>
                         {town.label}
@@ -195,6 +205,7 @@ export function SignUp() {
                     placeholder="e.g., Near Park"
                     icon={<MapPinIcon className="h-5 w-5 text-gray-400" />}
                     crossOrigin={undefined}
+                      className="!bg-white"
                   />
                 </div>
               </div>
@@ -216,10 +227,11 @@ export function SignUp() {
                   placeholder="name@example.com"
                   icon={<EnvelopeIcon className="h-5 w-5 text-gray-400" />}
                   crossOrigin={undefined}
+                      className="!bg-white"
                 />
 
                 {/* Passwords */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-6">
                   <div className="relative">
                     <Input
                       name="password"
@@ -227,6 +239,7 @@ export function SignUp() {
                       label="Password"
                       placeholder="••••••••"
                       crossOrigin={undefined}
+                      className="!bg-white"
                     />
                     <IconButton
                       variant="text"
@@ -249,6 +262,7 @@ export function SignUp() {
                       label="Confirm Password"
                       placeholder="••••••••"
                       crossOrigin={undefined}
+                      className="!bg-white"
                     />
                     <IconButton
                       variant="text"

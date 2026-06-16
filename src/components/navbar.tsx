@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Bars3Icon } from "@heroicons/react/24/outline";
+import { useState, useEffect } from "react";
+import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
 import { ArrowPathIcon } from "@heroicons/react/24/solid";
 
 // ── Shared modules ─────────────────────────────────────────────────────
@@ -16,6 +16,15 @@ import { NAV_LINKS } from "../constants";
 
 export const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Close mobile menu when screen size increases past 960px
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 960) setIsMobileMenuOpen(false);
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   /** Renders the list of navigation links (shared between desktop & mobile). */
   const renderLinks = (extraClasses = "") =>
@@ -66,7 +75,11 @@ export const Navbar = () => {
           className="ml-auto h-6 w-6 text-inherit hover:bg-transparent focus:bg-transparent lg:hidden"
           onClick={() => setIsMobileMenuOpen((prev) => !prev)}
         >
-          <Bars3Icon className="h-6 w-6" />
+          {isMobileMenuOpen ? (
+            <XMarkIcon className="h-6 w-6 stroke-2" />
+          ) : (
+            <Bars3Icon className="h-6 w-6 stroke-2" />
+          )}
         </IconButton>
       </div>
 
