@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
 import { ArrowPathIcon } from "@heroicons/react/24/solid";
 
@@ -16,6 +17,12 @@ import { NAV_LINKS } from "../constants";
 
 export const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const location = useLocation();
+
+  // Dynamically switch the auth button between Login and Sign Up
+  const isOnLogin = location.pathname === "/login";
+  const authLabel = isOnLogin ? "Sign Up" : "Login";
+  const authPath = isOnLogin ? "/signup" : "/login";
 
   // Close mobile menu when screen size increases past 960px
   useEffect(() => {
@@ -60,12 +67,14 @@ export const Navbar = () => {
               {renderLinks()}
             </ul>
           </nav>
-          <Button
-            size="sm"
-            className="!bg-[#003829] !text-white hover:!bg-[#00291e] rounded-full px-6"
-          >
-            Login
-          </Button>
+          <Link to={authPath}>
+            <Button
+              size="sm"
+              className="!bg-[#003829] !text-white hover:!bg-[#00291e] rounded-full px-6"
+            >
+              {authLabel}
+            </Button>
+          </Link>
         </div>
 
         {/* ── Mobile hamburger toggle ── */}
@@ -88,13 +97,15 @@ export const Navbar = () => {
         <ul className="mb-4 flex flex-col gap-3">
           {renderLinks("block py-2")}
           <li>
-            <Button
-              size="sm"
-              className="!bg-[#003829] !text-white hover:!bg-[#00291e]"
-              fullWidth
-            >
-              Login
-            </Button>
+            <Link to={authPath}>
+              <Button
+                size="sm"
+                className="!bg-[#003829] !text-white hover:!bg-[#00291e]"
+                fullWidth
+              >
+                {authLabel}
+              </Button>
+            </Link>
           </li>
         </ul>
       </MobileNav>

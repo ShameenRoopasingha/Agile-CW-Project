@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from "react";
+import { Link } from "react-router-dom";
 import {
   ArrowRightIcon,
   EyeIcon,
@@ -54,9 +55,9 @@ export function Login() {
         password,
         rememberMe,
       });
-    } catch (err: any) {
+    } catch (err) {
       // Display errors caught during validation
-      setErrorMsg(err.message || "An unexpected error occurred during login.");
+      setErrorMsg(err instanceof Error ? err.message : "An unexpected error occurred during login.");
     }
   };
 
@@ -217,13 +218,13 @@ export function Login() {
               {/* Register redirect */}
               <Typography color="gray" className="mt-8 text-center font-normal text-sm">
                 Don't have an account?{" "}
-                <a
-                  href="#"
+                <Link
+                  to="/signup"
                   className="font-semibold hover:underline"
                   style={{ color: BRAND.accent }}
                 >
                   Register new premises
-                </a>
+                </Link>
               </Typography>
             </form>
           </CardBody>

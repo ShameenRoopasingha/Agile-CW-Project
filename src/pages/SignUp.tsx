@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from "react";
+import { Link } from "react-router-dom";
 import {
   ArrowRightIcon,
   EyeIcon,
@@ -293,13 +294,13 @@ export function SignUp() {
               {/* Sign-in redirect */}
               <Typography color="gray" className="mt-8 text-center font-normal text-sm">
                 Already have an account?{" "}
-                <a
-                  href="#"
+                <Link
+                  to="/login"
                   className="font-semibold hover:underline"
                   style={{ color: BRAND.accent }}
                 >
                   Sign in here
-                </a>
+                </Link>
               </Typography>
             </form>
           </CardBody>
