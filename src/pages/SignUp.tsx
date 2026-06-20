@@ -64,11 +64,11 @@ export function SignUp() {
       }
 
       // TODO: call actual registration API here
-      console.log("Validation passed! Payload:", Object.fromEntries(formData));
+      console.log("Validation passed! Payload:", Object.fromEntries(formData.entries()));
 
-    } catch (err: any) {
+    } catch (err) {
       // Display errors caught during validation
-      setErrorMsg(err.message || "An unexpected error occurred during registration.");
+      setErrorMsg(err instanceof Error ? err.message : "An unexpected error occurred during registration.");
     }
   };
 

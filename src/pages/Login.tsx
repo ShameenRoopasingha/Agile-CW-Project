@@ -196,13 +196,13 @@ export function Login() {
                   </Typography>
                 </label>
 
-                <a
-                  href="#"
+                <Link
+                  to="/reset-password"
                   className="text-sm font-semibold hover:underline"
                   style={{ color: BRAND.accent }}
                 >
                   Forgot password?
-                </a>
+                </Link>
               </div>
 
               {/* Submit */}
