@@ -1,8 +1,10 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, Outlet } from "react-router-dom";
 import { Layout } from "./layout/layout";
+import { AdminLayout } from "./layout/AdminLayout";
 import { SignUp } from "./pages/SignUp";
 import { Login } from "./pages/Login";
 import { ResetPassword } from "./pages/ResetPassword";
+import { Dashboard } from "./pages/admin/Dashboard";
 
 /**
  * Root application component.
@@ -11,17 +13,27 @@ import { ResetPassword } from "./pages/ResetPassword";
  * - /login  → Login page
  * - /signup → Sign Up page
  * - /reset-password → Reset Password page
+ * - /admin/* → Admin section wrapped in AdminLayout
  * - /       → Redirects to /login
  */
 export default function App() {
   return (
-    <Layout>
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<SignUp />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="*" element={<Navigate to="/login" replace />} />
-      </Routes>
-    </Layout>
+    <Routes>
+      <Route path="/admin" element={<AdminLayout><Outlet /></AdminLayout>}>
+        <Route path="dashboard" element={<Dashboard />} />
+        <Route index element={<Navigate to="dashboard" replace />} />
+      </Route>
+      
+      <Route path="*" element={
+        <Layout>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<SignUp />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="*" element={<Navigate to="/login" replace />} />
+          </Routes>
+        </Layout>
+      } />
+    </Routes>
   );
 }
