@@ -108,18 +108,14 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
 
       {/* Main Content Area */}
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {/* Header */}
-        <header className="h-16 shrink-0 px-4 sm:px-6 flex items-center justify-between border-b border-gray-300/50 bg-[#e6e9ef]/80 backdrop-blur-sm z-10">
-          <div className="flex items-center gap-4">
+        {/* Floating Global Actions */}
+        <div className="absolute top-0 right-0 left-0 h-20 pointer-events-none z-20 flex justify-between items-start p-4 sm:p-6">
+          <div className="pointer-events-auto">
             <IconButton variant="text" color="blue-gray" className="lg:hidden" onClick={() => setSidebarOpen(true)}>
               <Bars3Icon className="h-6 w-6" />
             </IconButton>
-            <div className="hidden md:block w-72">
-              {/* Removed global search bar as requested */}
-            </div>
           </div>
-
-          <div className="flex items-center gap-4 sm:gap-6">
+          <div className="flex items-center gap-4 sm:gap-6 pointer-events-auto">
             <IconButton variant="text" color="blue-gray" className="rounded-full">
               <BellIcon className="h-6 w-6" />
             </IconButton>
@@ -131,7 +127,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
               <UserCircleIcon className="h-9 w-9 text-gray-700" />
             </div>
           </div>
-        </header>
+        </div>
 
         {/* Page Content */}
         <div className="flex-1 overflow-auto p-4 sm:p-6">
