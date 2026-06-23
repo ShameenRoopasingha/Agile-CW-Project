@@ -78,17 +78,8 @@ export function Complaints() {
       {/* Left Side: Header, Controls, and Table */}
       <div className={`flex flex-col gap-6 transition-all duration-300 min-w-0 h-full ${selectedComplaint ? "flex-1" : "w-full"}`}>
         
-        {/* Header and Controls Stack */}
+        {/* Controls Stack (Title moved to global header) */}
         <div className="flex flex-col gap-5 shrink-0 w-full">
-          {/* Title Row */}
-          <div>
-            <Typography variant="h5" color="blue-gray" className="font-bold text-xl mb-1 tracking-tight">
-              Manage Complaints
-            </Typography>
-            <Typography variant="small" color="gray" className="font-medium text-sm text-gray-500">
-              Review and resolve citizen reported sanitation issues.
-            </Typography>
-          </div>
 
           {/* Controls Row */}
           <div className="flex items-center gap-3 w-full">

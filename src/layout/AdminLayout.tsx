@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
-  MagnifyingGlassIcon,
   BellIcon,
   UserCircleIcon,
   Squares2X2Icon,
@@ -13,7 +12,7 @@ import {
   Bars3Icon,
   XMarkIcon
 } from "@heroicons/react/24/outline";
-import { Typography, Input, IconButton } from "../lib/mt-components";
+import { Typography, IconButton } from "../lib/mt-components";
 
 const NAVIGATION = [
   { name: "Dashboard", href: "/admin/dashboard", icon: Squares2X2Icon },
@@ -107,15 +106,38 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
-        {/* Floating Global Actions */}
-        <div className="absolute top-0 right-0 left-0 h-20 pointer-events-none z-20 flex justify-between items-start p-4 sm:p-6">
-          <div className="pointer-events-auto">
+      <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        {/* Header */}
+        <header className="h-20 shrink-0 px-4 sm:px-6 flex items-center justify-between border-none bg-transparent z-10 pt-4">
+          <div className="flex items-center gap-4">
             <IconButton variant="text" color="blue-gray" className="lg:hidden" onClick={() => setSidebarOpen(true)}>
               <Bars3Icon className="h-6 w-6" />
             </IconButton>
+            <div className="hidden md:block">
+              {location.pathname.includes('/admin/complaints') && (
+                <div>
+                  <Typography variant="h5" color="blue-gray" className="font-bold text-xl mb-1 tracking-tight">
+                    Manage Complaints
+                  </Typography>
+                  <Typography variant="small" color="gray" className="font-medium text-sm text-gray-500">
+                    Review and resolve citizen reported sanitation issues.
+                  </Typography>
+                </div>
+              )}
+              {location.pathname.includes('/admin/dashboard') && (
+                <div>
+                  <Typography variant="h5" color="blue-gray" className="font-bold text-xl mb-1 tracking-tight">
+                    Dashboard
+                  </Typography>
+                  <Typography variant="small" color="gray" className="font-medium text-sm text-gray-500">
+                    Overview of the municipal waste management system.
+                  </Typography>
+                </div>
+              )}
+            </div>
           </div>
-          <div className="flex items-center gap-4 sm:gap-6 pointer-events-auto">
+
+          <div className="flex items-center gap-4 sm:gap-6 self-start mt-2">
             <IconButton variant="text" color="blue-gray" className="rounded-full">
               <BellIcon className="h-6 w-6" />
             </IconButton>
@@ -127,10 +149,10 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
               <UserCircleIcon className="h-9 w-9 text-gray-700" />
             </div>
           </div>
-        </div>
+        </header>
 
         {/* Page Content */}
-        <div className="flex-1 overflow-auto p-4 sm:p-6">
+        <div className="flex-1 overflow-auto p-4 sm:p-6 pt-2">
           {children}
         </div>
       </main>
