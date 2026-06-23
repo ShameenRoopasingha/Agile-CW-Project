@@ -4,8 +4,10 @@ import { AdminLayout } from "./layout/AdminLayout";
 import { SignUp } from "./pages/SignUp";
 import { Login } from "./pages/Login";
 import { ResetPassword } from "./pages/ResetPassword";
+import { Guidelines } from "./pages/Guidelines";
 import { Dashboard } from "./pages/admin/Dashboard";
 import { Complaints } from "./pages/admin/Complaints";
+import { StaffDirectory } from "./pages/admin/StaffDirectory";
 /**
  * Root application component.
  *
@@ -22,6 +24,7 @@ export default function App() {
       <Route path="/admin" element={<AdminLayout><Outlet /></AdminLayout>}>
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="complaints" element={<Complaints />} />
+        <Route path="staff" element={<StaffDirectory />} />
         <Route index element={<Navigate to="dashboard" replace />} />
       </Route>
       
@@ -31,6 +34,7 @@ export default function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<SignUp />} />
             <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/guidelines" element={<Guidelines />} />
             <Route path="*" element={<Navigate to="/login" replace />} />
           </Routes>
         </Layout>

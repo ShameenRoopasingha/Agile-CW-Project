@@ -13,5 +13,5 @@ export interface NavLink {
 export const NAV_LINKS: readonly NavLink[] = [
   { label: "Home", href: "#" },
   { label: "Public Schedule", href: "#schedule" },
-  { label: "Guidelines", href: "#guidelines" },
+  { label: "Guidelines", href: "/guidelines" },
 ];

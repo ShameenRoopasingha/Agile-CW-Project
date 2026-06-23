@@ -5,21 +5,21 @@ import {
   UserCircleIcon,
   Squares2X2Icon,
   UsersIcon,
-  UserGroupIcon,
   ChatBubbleLeftEllipsisIcon,
   Cog6ToothIcon,
   ArrowLeftOnRectangleIcon,
   Bars3Icon,
-  XMarkIcon
+  XMarkIcon,
+  ChartBarIcon
 } from "@heroicons/react/24/outline";
 import { Typography, IconButton } from "../lib/mt-components";
 
 const NAVIGATION = [
   { name: "Dashboard", href: "/admin/dashboard", icon: Squares2X2Icon },
-  { name: "Staff Management", href: "#", icon: UsersIcon },
-  { name: "Citizen Accounts", href: "#", icon: UserGroupIcon },
-  { name: "Manage Complaints", href: "/admin/complaints", icon: ChatBubbleLeftEllipsisIcon },
-  { name: "System Settings", href: "#", icon: Cog6ToothIcon },
+  { name: "Staff Directory", href: "/admin/staff", icon: UsersIcon },
+  { name: "Complaints", href: "/admin/complaints", icon: ChatBubbleLeftEllipsisIcon },
+  { name: "Sustainability Reports", href: "#", icon: ChartBarIcon },
+  { name: "Settings", href: "#", icon: Cog6ToothIcon },
 ];
 
 export function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -108,12 +108,24 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
       {/* Main Content Area */}
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Header */}
-        <header className="h-20 shrink-0 px-4 sm:px-6 flex items-center justify-between border-none bg-transparent z-10 pt-4">
-          <div className="flex items-center gap-4">
+        <header className="h-20 shrink-0 px-4 sm:px-6 flex items-center border-b border-gray-300/50 bg-[#e6e9ef] z-10">
+          <div className="flex items-center gap-4 flex-1">
             <IconButton variant="text" color="blue-gray" className="lg:hidden" onClick={() => setSidebarOpen(true)}>
               <Bars3Icon className="h-6 w-6" />
             </IconButton>
-            <div className="hidden md:block">
+            
+            {/* Conditional Title or Search Bar */}
+            <div className="hidden md:flex flex-1 items-center">
+              {location.pathname.includes('/admin/staff') && (
+                <div>
+                  <Typography variant="h5" color="blue-gray" className="font-bold text-xl mb-1 tracking-tight">
+                    Staff Directory
+                  </Typography>
+                  <Typography variant="small" color="gray" className="font-medium text-sm text-gray-500">
+                    Manage municipal operational personnel and logistical coordinators.
+                  </Typography>
+                </div>
+              )}
               {location.pathname.includes('/admin/complaints') && (
                 <div>
                   <Typography variant="h5" color="blue-gray" className="font-bold text-xl mb-1 tracking-tight">
@@ -137,16 +149,25 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
             </div>
           </div>
 
-          <div className="flex items-center gap-4 sm:gap-6 self-start mt-2">
-            <IconButton variant="text" color="blue-gray" className="rounded-full">
+          <div className="flex items-center gap-4 sm:gap-6 ml-4">
+            <IconButton variant="text" color="blue-gray" className="rounded-full relative text-gray-600">
               <BellIcon className="h-6 w-6" />
+              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
             </IconButton>
             <div className="h-8 w-px bg-gray-300 hidden sm:block"></div>
             <div className="flex items-center gap-3">
-              <Typography variant="small" color="blue-gray" className="font-semibold hidden sm:block">
-                Profile
-              </Typography>
-              <UserCircleIcon className="h-9 w-9 text-gray-700" />
+              <div className="hidden sm:block text-right">
+                <Typography variant="small" color="blue-gray" className="font-bold text-sm leading-tight text-gray-900">
+                  Alex Rivera
+                </Typography>
+                <Typography variant="small" color="gray" className="text-[10px] font-medium uppercase tracking-wider text-gray-500">
+                  Admin User
+                </Typography>
+              </div>
+              <div className="w-10 h-10 rounded-full bg-gray-300 overflow-hidden shadow-[2px_2px_4px_#c4c7cc,-2px_-2px_4px_#ffffff]">
+                {/* Fallback avatar since we don't have the image */}
+                <UserCircleIcon className="w-full h-full text-gray-600" />
+              </div>
             </div>
           </div>
         </header>
