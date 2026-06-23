@@ -75,46 +75,44 @@ export function Complaints() {
   return (
     <div className="max-w-[1600px] mx-auto h-full flex gap-6 relative items-start">
       
-      {/* Left Side: Header, Controls, and Table */}
-      <div className={`flex flex-col gap-6 transition-all duration-300 min-w-0 h-full ${selectedComplaint ? "flex-1" : "w-full"}`}>
-        
-        {/* Top Row: Title on the left, Filters taking up the empty space on the right */}
-        <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6 shrink-0">
-          <div>
-            <Typography variant="h5" color="blue-gray" className="font-bold text-xl mb-1 tracking-tight">
+        {/* Header and Controls Row */}
+        <div className="flex items-center justify-between gap-4 shrink-0 w-full">
+          {/* Title Row */}
+          <div className="shrink-0 hidden lg:block">
+            <Typography variant="h5" color="blue-gray" className="font-bold text-xl mb-1 tracking-tight whitespace-nowrap">
               Manage Complaints
             </Typography>
-            <Typography variant="small" color="gray" className="font-medium text-sm text-gray-500">
+            <Typography variant="small" color="gray" className="font-medium text-sm text-gray-500 whitespace-nowrap">
               Review and resolve citizen reported sanitation issues.
             </Typography>
           </div>
 
-          {/* Controls Container */}
-          <div className="flex flex-wrap items-center gap-4 w-full xl:w-auto">
+          {/* Controls Row */}
+          <div className="flex items-center gap-3 flex-1 justify-end min-w-0">
             {/* Search Input */}
-            <div className="h-12 w-full xl:w-80 bg-[#f0f2f5] rounded-xl shadow-[inset_4px_4px_8px_#c4c7cc,inset_-4px_-4px_8px_#ffffff] flex items-center px-4">
-               <svg className="w-5 h-5 text-gray-500 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            <div className="h-12 flex-1 max-w-md bg-[#f0f2f5] rounded-xl shadow-[inset_4px_4px_8px_#c4c7cc,inset_-4px_-4px_8px_#ffffff] flex items-center px-4 min-w-[120px]">
+               <svg className="w-5 h-5 text-gray-500 mr-2 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                <input 
                  type="text" 
                  placeholder="Search by Assessment No. or Name" 
-                 className="bg-transparent border-none outline-none flex-1 text-sm text-gray-700 font-medium placeholder-gray-400"
+                 className="bg-transparent border-none outline-none w-full text-sm text-gray-700 font-medium placeholder-gray-400 min-w-0"
                />
             </div>
             
             {/* Status Dropdown */}
-            <button className="h-12 bg-[#e6e9ef] rounded-xl shadow-[4px_4px_8px_#c4c7cc,-4px_-4px_8px_#ffffff] flex items-center px-4 hover:shadow-[inset_2px_2px_4px_#c4c7cc,inset_-2px_-2px_4px_#ffffff] transition-shadow text-gray-700">
+            <button className="h-12 shrink-0 bg-[#e6e9ef] rounded-xl shadow-[4px_4px_8px_#c4c7cc,-4px_-4px_8px_#ffffff] flex items-center px-4 hover:shadow-[inset_2px_2px_4px_#c4c7cc,inset_-2px_-2px_4px_#ffffff] transition-shadow text-gray-700 hidden xl:flex">
               <span className="text-sm font-bold mr-2">All Statuses</span>
               <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
             </button>
             
             {/* Date Dropdown */}
-            <button className="h-12 bg-[#e6e9ef] rounded-xl shadow-[4px_4px_8px_#c4c7cc,-4px_-4px_8px_#ffffff] flex items-center px-4 hover:shadow-[inset_2px_2px_4px_#c4c7cc,inset_-2px_-2px_4px_#ffffff] transition-shadow text-gray-700">
+            <button className="h-12 shrink-0 bg-[#e6e9ef] rounded-xl shadow-[4px_4px_8px_#c4c7cc,-4px_-4px_8px_#ffffff] flex items-center px-4 hover:shadow-[inset_2px_2px_4px_#c4c7cc,inset_-2px_-2px_4px_#ffffff] transition-shadow text-gray-700 hidden 2xl:flex">
               <span className="text-sm font-bold mr-2">This Week</span>
               <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
             </button>
 
             {/* Filter Button */}
-            <button className="h-12 w-12 bg-[#e6e9ef] rounded-xl shadow-[4px_4px_8px_#c4c7cc,-4px_-4px_8px_#ffffff] flex items-center justify-center hover:shadow-[inset_2px_2px_4px_#c4c7cc,inset_-2px_-2px_4px_#ffffff] transition-shadow text-gray-700 shrink-0">
+            <button className="h-12 w-12 shrink-0 bg-[#e6e9ef] rounded-xl shadow-[4px_4px_8px_#c4c7cc,-4px_-4px_8px_#ffffff] flex items-center justify-center hover:shadow-[inset_2px_2px_4px_#c4c7cc,inset_-2px_-2px_4px_#ffffff] transition-shadow text-gray-700">
               <Bars3BottomRightIcon className="w-5 h-5" />
             </button>
           </div>
