@@ -115,14 +115,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
               <Bars3Icon className="h-6 w-6" />
             </IconButton>
             <div className="hidden md:block w-72">
-              <Input
-                type="text"
-                placeholder="Global Search.."
-                icon={<MagnifyingGlassIcon className="h-5 w-5" />}
-                className="!h-[54px] !border-none !bg-[#f0f2f5] !rounded-xl shadow-[inset_4px_4px_8px_#c4c7cc,inset_-4px_-4px_8px_#ffffff]"
-                labelProps={{ className: "hidden" }}
-                crossOrigin={undefined}
-              />
+              {/* Removed global search bar as requested */}
             </div>
           </div>
 

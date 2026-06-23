@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Typography, Card } from "../../lib/mt-components";
-import { ChevronLeftIcon, ChevronRightIcon, CalendarIcon, XMarkIcon, UserIcon, PhoneIcon } from "@heroicons/react/24/outline";
+import { XMarkIcon, UserIcon, PhoneIcon } from "@heroicons/react/24/outline";
 import { Bars3BottomRightIcon, UsersIcon } from "@heroicons/react/24/solid";
 
 interface Complaint {
@@ -67,249 +67,258 @@ const complaintsData: Complaint[] = [
 export function Complaints() {
   const [selectedComplaint, setSelectedComplaint] = useState<Complaint | null>(null);
 
-  return (
-    <div className="max-w-[1600px] mx-auto h-full flex flex-col gap-6">
-      {/* Header section */}
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-4 shrink-0">
-        <div>
-          <Typography variant="h5" color="blue-gray" className="font-bold text-xl mb-1 tracking-tight">
-            Manage Complaints
-          </Typography>
-          <Typography variant="small" color="gray" className="font-medium text-sm text-gray-500">
-            Review and resolve citizen reported sanitation issues.
-          </Typography>
-        </div>
-      </div>
+  // Remove body scroll lock since we are not using a modal anymore
+  useEffect(() => {
+    return () => {};
+  }, []);
 
-      {/* Main Content Area (Split View) */}
-      <div className="flex flex-1 gap-6 min-h-0 overflow-hidden">
-        {/* Left Side: Controls & Table */}
-        <div className={`flex flex-col gap-6 transition-all duration-300 min-w-0 ${selectedComplaint ? "flex-1" : "w-full"}`}>
-          {/* Controls Bar */}
-          <Card className="bg-[#e6e9ef] shadow-[6px_6px_12px_#c4c7cc,-6px_-6px_12px_#ffffff] rounded-2xl border-none p-4 shrink-0 flex flex-col gap-4">
-            <div className="h-12 bg-[#f0f2f5] rounded-xl shadow-[inset_4px_4px_8px_#c4c7cc,inset_-4px_-4px_8px_#ffffff] flex items-center px-4">
-               <svg className="w-5 h-5 text-gray-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+  return (
+    <div className="max-w-[1600px] mx-auto h-full flex gap-6 relative items-start">
+      
+      {/* Left Side: Header, Controls, and Table */}
+      <div className={`flex flex-col gap-6 transition-all duration-300 min-w-0 h-full ${selectedComplaint ? "flex-1" : "w-full"}`}>
+        
+        {/* Top Row: Title on the left, Filters taking up the empty space on the right */}
+        <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6 shrink-0">
+          <div>
+            <Typography variant="h5" color="blue-gray" className="font-bold text-xl mb-1 tracking-tight">
+              Manage Complaints
+            </Typography>
+            <Typography variant="small" color="gray" className="font-medium text-sm text-gray-500">
+              Review and resolve citizen reported sanitation issues.
+            </Typography>
+          </div>
+
+          {/* Controls Container */}
+          <div className="flex flex-wrap items-center gap-4 w-full xl:w-auto">
+            {/* Search Input */}
+            <div className="h-12 w-full xl:w-80 bg-[#f0f2f5] rounded-xl shadow-[inset_4px_4px_8px_#c4c7cc,inset_-4px_-4px_8px_#ffffff] flex items-center px-4">
+               <svg className="w-5 h-5 text-gray-500 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                <input 
                  type="text" 
-                 placeholder="Search by Assessment Number or Citizen Name" 
+                 placeholder="Search by Assessment No. or Name" 
                  className="bg-transparent border-none outline-none flex-1 text-sm text-gray-700 font-medium placeholder-gray-400"
                />
             </div>
-            <div className="flex items-center gap-3">
-              {/* Status Dropdown */}
-              <div className="h-10 bg-[#e6e9ef] rounded-lg shadow-[3px_3px_6px_#c4c7cc,-3px_-3px_6px_#ffffff] flex items-center px-4 cursor-pointer hover:bg-[#e0e3e9] transition-colors border border-gray-300/30">
-                <span className="text-sm font-medium text-gray-700 mr-3">All Statuses</span>
-              </div>
-              {/* Date Dropdown */}
-              <div className="h-10 bg-[#e6e9ef] rounded-lg shadow-[3px_3px_6px_#c4c7cc,-3px_-3px_6px_#ffffff] flex items-center px-4 cursor-pointer hover:bg-[#e0e3e9] transition-colors border border-gray-300/30">
-                <span className="text-sm font-medium text-gray-700 mr-3">This Week</span>
-                <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
-              </div>
-              {/* Filter Button */}
-              <div className="w-10 h-10 bg-[#e6e9ef] rounded-lg shadow-[3px_3px_6px_#c4c7cc,-3px_-3px_6px_#ffffff] flex items-center justify-center cursor-pointer hover:bg-[#e0e3e9] transition-colors border border-gray-300/30">
-                <Bars3BottomRightIcon className="w-5 h-5 text-gray-700" />
-              </div>
-            </div>
-          </Card>
-
-          {/* Table Card */}
-          <Card className="bg-[#e6e9ef] shadow-[12px_12px_24px_#c4c7cc,-12px_-12px_24px_#ffffff] rounded-2xl border-none flex-1 overflow-hidden flex flex-col">
-            <div className="overflow-x-auto flex-1">
-              <table className="w-full min-w-max table-auto text-left border-collapse">
-                <thead>
-                  <tr>
-                    {["COMPLAINT ID", "DATE SUBMITTED", "LOCATION / ASST. NO", "STATUS"].map((head) => (
-                      <th key={head} className="border-b border-gray-300 p-4 pt-6 pb-4">
-                        <Typography variant="small" color="blue-gray" className="font-bold uppercase tracking-wider text-xs text-gray-800">
-                          {head}
-                        </Typography>
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {complaintsData.map((complaint, index) => {
-                    const { id, date, time, location, asstNo, status } = complaint;
-                    const isLast = index === complaintsData.length - 1;
-                    const classes = isLast ? "p-4" : "p-4 border-b border-gray-300/50";
-                    const isSelected = selectedComplaint?.id === id;
-                    
-                    let badgeColor = "";
-                    let badgeBg = "";
-                    if (status === "Pending") {
-                      badgeColor = "text-red-800";
-                      badgeBg = "bg-red-100/80 shadow-[inset_1px_1px_2px_rgba(255,150,150,0.3)]";
-                    } else if (status === "In Progress") {
-                      badgeColor = "text-yellow-800";
-                      badgeBg = "bg-yellow-100 shadow-[inset_1px_1px_2px_rgba(255,200,100,0.3)]";
-                    } else if (status === "Resolved") {
-                      badgeColor = "text-teal-800";
-                      badgeBg = "bg-teal-100/80 shadow-[inset_1px_1px_2px_rgba(150,255,255,0.3)]";
-                    }
-
-                    return (
-                      <tr 
-                        key={id} 
-                        onClick={() => setSelectedComplaint(complaint)}
-                        className={`cursor-pointer transition-colors ${isSelected ? "bg-[#d0ebd6]/40" : "hover:bg-[#f0f2f5]/80"}`}
-                      >
-                        <td className={classes}>
-                          <Typography variant="small" color="blue-gray" className="font-bold text-[#2c5126]">
-                            {id}
-                          </Typography>
-                        </td>
-                        <td className={classes}>
-                          <div className="flex flex-col">
-                            <span className="font-medium text-gray-800 text-sm">{date}</span>
-                            <span className="text-gray-500 text-xs">| {time}</span>
-                          </div>
-                        </td>
-                        <td className={classes}>
-                          <div className="flex flex-col">
-                            <span className="font-bold text-gray-800 text-sm">{location}</span>
-                            <span className="text-gray-500 text-xs uppercase">{asstNo}</span>
-                          </div>
-                        </td>
-                        <td className={classes}>
-                          <div className={`inline-block px-3 py-1 rounded-full text-[10px] uppercase font-bold tracking-widest ${badgeBg} ${badgeColor}`}>
-                            {status}
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
             
-            {/* Pagination Footer */}
-            <div className="p-4 border-t border-gray-300 flex items-center justify-between text-sm text-gray-600 bg-[#e6e9ef] shadow-[inset_0_4px_6px_-4px_#c4c7cc]">
-              <span className="font-medium text-xs">Showing 1 to 4 of 128 complaints</span>
-              <div className="flex items-center gap-1">
-                <button className="px-3 py-1 rounded-lg text-xs font-medium border border-gray-400 text-gray-700 hover:bg-gray-200">
-                  Previous
-                </button>
-                <button className="w-7 h-7 rounded bg-[#629955] text-white flex items-center justify-center text-xs font-bold shadow-[2px_2px_4px_#c4c7cc]">
-                  1
-                </button>
-                <button className="w-7 h-7 rounded bg-transparent border border-gray-400 text-gray-700 flex items-center justify-center text-xs font-bold">
-                  2
-                </button>
-                <button className="px-3 py-1 rounded-lg text-xs font-medium border border-gray-400 text-gray-700 hover:bg-gray-200">
-                  Next
-                </button>
-              </div>
-            </div>
-          </Card>
+            {/* Status Dropdown */}
+            <button className="h-12 bg-[#e6e9ef] rounded-xl shadow-[4px_4px_8px_#c4c7cc,-4px_-4px_8px_#ffffff] flex items-center px-4 hover:shadow-[inset_2px_2px_4px_#c4c7cc,inset_-2px_-2px_4px_#ffffff] transition-shadow text-gray-700">
+              <span className="text-sm font-bold mr-2">All Statuses</span>
+              <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+            </button>
+            
+            {/* Date Dropdown */}
+            <button className="h-12 bg-[#e6e9ef] rounded-xl shadow-[4px_4px_8px_#c4c7cc,-4px_-4px_8px_#ffffff] flex items-center px-4 hover:shadow-[inset_2px_2px_4px_#c4c7cc,inset_-2px_-2px_4px_#ffffff] transition-shadow text-gray-700">
+              <span className="text-sm font-bold mr-2">This Week</span>
+              <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+            </button>
+
+            {/* Filter Button */}
+            <button className="h-12 w-12 bg-[#e6e9ef] rounded-xl shadow-[4px_4px_8px_#c4c7cc,-4px_-4px_8px_#ffffff] flex items-center justify-center hover:shadow-[inset_2px_2px_4px_#c4c7cc,inset_-2px_-2px_4px_#ffffff] transition-shadow text-gray-700 shrink-0">
+              <Bars3BottomRightIcon className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
-        {/* Right Side: Details Panel */}
-        {selectedComplaint && (
-          <Card className="w-[400px] shrink-0 bg-white border border-gray-200 shadow-xl rounded-2xl flex flex-col h-full overflow-hidden animate-in slide-in-from-right-8 duration-300">
-            {/* Panel Header */}
-            <div className="flex items-center justify-between p-4 border-b border-gray-200 shrink-0 bg-gray-50">
-              <Typography variant="h6" color="blue-gray" className="font-bold text-sm">
-                Complaint Details - {selectedComplaint.id}
-              </Typography>
-              <button 
-                onClick={() => setSelectedComplaint(null)}
-                className="p-1 hover:bg-gray-200 rounded-md transition-colors text-gray-600"
-              >
-                <XMarkIcon className="w-5 h-5" />
+        {/* Main Table View */}
+        <Card className="bg-[#e6e9ef] shadow-[12px_12px_24px_#c4c7cc,-12px_-12px_24px_#ffffff] rounded-2xl border-none flex-1 overflow-hidden flex flex-col z-0">
+          <div className="overflow-x-auto flex-1">
+            <table className="w-full min-w-max table-auto text-left border-collapse">
+              <thead>
+                <tr>
+                  {["COMPLAINT ID", "DATE SUBMITTED", "LOCATION / ASST. NO", "STATUS"].map((head) => (
+                    <th key={head} className="border-b border-gray-300 p-4 pt-6 pb-4">
+                      <Typography variant="small" color="blue-gray" className="font-bold uppercase tracking-wider text-xs text-gray-800">
+                        {head}
+                      </Typography>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {complaintsData.map((complaint, index) => {
+                  const { id, date, time, location, asstNo, status } = complaint;
+                  const isLast = index === complaintsData.length - 1;
+                  const classes = isLast ? "p-4" : "p-4 border-b border-gray-300/50";
+                  const isSelected = selectedComplaint?.id === id;
+                  
+                  let badgeColor = "";
+                  let badgeBg = "";
+                  if (status === "Pending") {
+                    badgeColor = "text-red-800";
+                    badgeBg = "bg-red-100/80 shadow-[inset_1px_1px_2px_rgba(255,150,150,0.3)]";
+                  } else if (status === "In Progress") {
+                    badgeColor = "text-yellow-800";
+                    badgeBg = "bg-yellow-100 shadow-[inset_1px_1px_2px_rgba(255,200,100,0.3)]";
+                  } else if (status === "Resolved") {
+                    badgeColor = "text-teal-800";
+                    badgeBg = "bg-teal-100/80 shadow-[inset_1px_1px_2px_rgba(150,255,255,0.3)]";
+                  }
+
+                  return (
+                    <tr 
+                      key={id} 
+                      onClick={() => setSelectedComplaint(complaint)}
+                      className={`cursor-pointer transition-colors ${isSelected ? "bg-[#d0ebd6]/40" : "hover:bg-[#f0f2f5]/80"}`}
+                    >
+                      <td className={classes}>
+                        <Typography variant="small" color="blue-gray" className="font-bold text-[#2c5126]">
+                          {id}
+                        </Typography>
+                      </td>
+                      <td className={classes}>
+                        <div className="flex flex-col">
+                          <span className="font-medium text-gray-800 text-sm">{date}</span>
+                          <span className="text-gray-500 text-xs">| {time}</span>
+                        </div>
+                      </td>
+                      <td className={classes}>
+                        <div className="flex flex-col">
+                          <span className="font-bold text-gray-800 text-sm">{location}</span>
+                          <span className="text-gray-500 text-xs uppercase">{asstNo}</span>
+                        </div>
+                      </td>
+                      <td className={classes}>
+                        <div className={`inline-block px-3 py-1 rounded-full text-[10px] uppercase font-bold tracking-widest ${badgeBg} ${badgeColor}`}>
+                          {status}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          
+          {/* Pagination Footer */}
+          <div className="p-4 border-t border-gray-300/50 flex items-center justify-between text-sm text-gray-600 bg-[#e6e9ef] shadow-[inset_0_4px_6px_-4px_#c4c7cc]">
+            <span className="font-medium text-xs">Showing 1 to 4 of 128 complaints</span>
+            <div className="flex items-center gap-3">
+              <button className="px-4 py-2 rounded-xl text-xs font-bold text-gray-700 bg-[#e6e9ef] shadow-[4px_4px_8px_#c4c7cc,-4px_-4px_8px_#ffffff] hover:shadow-[inset_2px_2px_4px_#c4c7cc,inset_-2px_-2px_4px_#ffffff] transition-all">
+                Previous
+              </button>
+              <div className="flex gap-2">
+                <button className="w-9 h-9 rounded-xl bg-[#b2efcd] text-[#2c5126] flex items-center justify-center text-xs font-bold shadow-[inset_2px_2px_4px_#9de4be,inset_-2px_-2px_4px_#c5fadb]">
+                  1
+                </button>
+                <button className="w-9 h-9 rounded-xl bg-[#e6e9ef] text-gray-700 flex items-center justify-center text-xs font-bold shadow-[4px_4px_8px_#c4c7cc,-4px_-4px_8px_#ffffff] hover:shadow-[inset_2px_2px_4px_#c4c7cc,inset_-2px_-2px_4px_#ffffff] transition-all">
+                  2
+                </button>
+              </div>
+              <button className="px-4 py-2 rounded-xl text-xs font-bold text-gray-700 bg-[#e6e9ef] shadow-[4px_4px_8px_#c4c7cc,-4px_-4px_8px_#ffffff] hover:shadow-[inset_2px_2px_4px_#c4c7cc,inset_-2px_-2px_4px_#ffffff] transition-all">
+                Next
               </button>
             </div>
-
-            {/* Panel Scrollable Content */}
-            <div className="flex-1 overflow-y-auto p-5 space-y-6">
-              {/* Photo Upload */}
-              <div>
-                <Typography variant="small" color="blue-gray" className="font-bold uppercase text-[11px] tracking-wider mb-2">
-                  Photo Upload
-                </Typography>
-                <div className="w-full h-40 bg-gray-100 rounded-xl border border-gray-200 overflow-hidden relative">
-                  {selectedComplaint.photo ? (
-                    <img src={selectedComplaint.photo} alt="Complaint" className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
-                      No photo provided
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Description */}
-              <div>
-                <Typography variant="small" color="blue-gray" className="font-bold uppercase text-[11px] tracking-wider mb-2">
-                  Description
-                </Typography>
-                <div className="bg-[#f2f5fb] p-4 rounded-xl border border-[#dce4f5]">
-                  <p className="text-sm italic font-medium text-gray-800 leading-relaxed">
-                    {selectedComplaint.desc}
-                  </p>
-                </div>
-              </div>
-
-              {/* Contact Info */}
-              <div className="grid grid-cols-2 gap-4 border-b border-gray-200 pb-6">
-                <div>
-                  <Typography variant="small" color="blue-gray" className="font-bold uppercase text-[10px] tracking-wider text-gray-600 mb-1">
-                    Resident Name
-                  </Typography>
-                  <div className="flex items-center gap-1.5 text-sm font-bold text-gray-900">
-                    <UserIcon className="w-4 h-4 text-[#2c5126]" />
-                    {selectedComplaint.reporter}
-                  </div>
-                </div>
-                <div>
-                  <Typography variant="small" color="blue-gray" className="font-bold uppercase text-[10px] tracking-wider text-gray-600 mb-1">
-                    Contact
-                  </Typography>
-                  <div className="flex items-center gap-1.5 text-sm font-bold text-gray-900">
-                    <PhoneIcon className="w-4 h-4 text-[#2c5126]" />
-                    {selectedComplaint.contact}
-                  </div>
-                </div>
-              </div>
-
-              {/* Controls */}
-              <div className="space-y-4">
-                <div>
-                  <Typography variant="small" color="blue-gray" className="font-bold uppercase text-[11px] tracking-wider mb-2 text-gray-900">
-                    Status Update Control
-                  </Typography>
-                  <div className="h-10 bg-white border border-gray-300 rounded-lg flex items-center px-3 cursor-pointer">
-                    <span className="text-sm text-gray-800 flex-1">{selectedComplaint.status}</span>
-                    <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
-                  </div>
-                </div>
-
-                <div>
-                  <Typography variant="small" color="blue-gray" className="font-bold uppercase text-[11px] tracking-wider mb-2 text-gray-900">
-                    Assign To Inspector
-                  </Typography>
-                  <div className="h-10 bg-white border border-gray-300 rounded-lg flex items-center px-3 cursor-pointer">
-                    <span className="text-sm text-gray-600 flex-1">Select an Inspector</span>
-                    <UsersIcon className="w-4 h-4 text-gray-500" />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Panel Footer */}
-            <div className="p-4 border-t border-gray-200 shrink-0 bg-gray-50 flex items-center gap-3">
-              <button className="flex-1 bg-[#6c9868] hover:bg-[#5a8157] text-white font-bold text-sm py-2.5 rounded-lg shadow-sm transition-colors">
-                Save Changes
-              </button>
-              <button 
-                onClick={() => setSelectedComplaint(null)}
-                className="flex-1 bg-white border border-gray-300 text-gray-700 font-bold text-sm py-2.5 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                Cancel
-              </button>
-            </div>
-          </Card>
-        )}
+          </div>
+        </Card>
       </div>
+
+      {/* Right Side: Details Panel */}
+      {selectedComplaint && (
+        <Card className="w-full sm:w-[400px] shrink-0 bg-[#e6e9ef] shadow-[12px_12px_24px_#c4c7cc,-12px_-12px_24px_#ffffff] border-none rounded-2xl flex flex-col h-full overflow-hidden animate-in slide-in-from-right-8 duration-300 relative z-10">
+          {/* Panel Header */}
+          <div className="flex items-center justify-between p-6 shrink-0 bg-[#e6e9ef] shadow-[0_4px_6px_-4px_#c4c7cc] z-10">
+            <Typography variant="h6" color="blue-gray" className="font-bold text-base">
+              Complaint Details - {selectedComplaint.id}
+            </Typography>
+            <button 
+              onClick={() => setSelectedComplaint(null)}
+              className="p-2 rounded-xl bg-[#e6e9ef] shadow-[3px_3px_6px_#c4c7cc,-3px_-3px_6px_#ffffff] hover:shadow-[inset_2px_2px_4px_#c4c7cc,inset_-2px_-2px_4px_#ffffff] transition-all text-gray-600"
+            >
+              <XMarkIcon className="w-5 h-5" />
+            </button>
+          </div>
+
+          {/* Panel Scrollable Content */}
+          <div className="flex-1 overflow-y-auto p-6 space-y-8">
+            {/* Photo Upload */}
+            <div>
+              <Typography variant="small" color="blue-gray" className="font-bold uppercase text-[11px] tracking-wider mb-3 text-gray-500">
+                Attached Photo
+              </Typography>
+              <div className="w-full h-48 bg-[#f0f2f5] rounded-2xl shadow-[inset_4px_4px_8px_#c4c7cc,inset_-4px_-4px_8px_#ffffff] overflow-hidden relative">
+                {selectedComplaint.photo ? (
+                  <img src={selectedComplaint.photo} alt="Complaint" className="w-full h-full object-cover opacity-90" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm font-bold">
+                    No photo provided
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Description */}
+            <div>
+              <Typography variant="small" color="blue-gray" className="font-bold uppercase text-[11px] tracking-wider mb-3 text-gray-500">
+                Description
+              </Typography>
+              <div className="bg-[#e6e9ef] shadow-[inset_4px_4px_8px_#c4c7cc,inset_-4px_-4px_8px_#ffffff] p-5 rounded-2xl">
+                <p className="text-sm italic font-medium text-gray-700 leading-relaxed">
+                  {selectedComplaint.desc}
+                </p>
+              </div>
+            </div>
+
+            {/* Contact Info */}
+            <div className="grid grid-cols-2 gap-6 bg-[#e6e9ef] shadow-[inset_4px_4px_8px_#c4c7cc,inset_-4px_-4px_8px_#ffffff] p-5 rounded-2xl">
+              <div>
+                <Typography variant="small" color="blue-gray" className="font-bold uppercase text-[10px] tracking-wider text-gray-500 mb-2">
+                  Resident Name
+                </Typography>
+                <div className="flex items-center gap-2 text-sm font-bold text-gray-900">
+                  <UserIcon className="w-4 h-4 text-[#2c5126]" />
+                  {selectedComplaint.reporter}
+                </div>
+              </div>
+              <div>
+                <Typography variant="small" color="blue-gray" className="font-bold uppercase text-[10px] tracking-wider text-gray-500 mb-2">
+                  Contact Number
+                </Typography>
+                <div className="flex items-center gap-2 text-sm font-bold text-gray-900">
+                  <PhoneIcon className="w-4 h-4 text-[#2c5126]" />
+                  {selectedComplaint.contact}
+                </div>
+              </div>
+            </div>
+
+            {/* Controls */}
+            <div className="space-y-5">
+              <div>
+                <Typography variant="small" color="blue-gray" className="font-bold uppercase text-[11px] tracking-wider mb-3 text-gray-500">
+                  Update Status
+                </Typography>
+                <div className="h-12 bg-[#f0f2f5] shadow-[inset_4px_4px_8px_#c4c7cc,inset_-4px_-4px_8px_#ffffff] rounded-2xl flex items-center px-5 cursor-pointer hover:bg-[#e6e9ef] transition-colors">
+                  <span className="text-sm font-bold text-gray-700 flex-1">{selectedComplaint.status}</span>
+                  <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                </div>
+              </div>
+
+              <div>
+                <Typography variant="small" color="blue-gray" className="font-bold uppercase text-[11px] tracking-wider mb-3 text-gray-500">
+                  Assign Inspector
+                </Typography>
+                <div className="h-12 bg-[#f0f2f5] shadow-[inset_4px_4px_8px_#c4c7cc,inset_-4px_-4px_8px_#ffffff] rounded-2xl flex items-center px-5 cursor-pointer hover:bg-[#e6e9ef] transition-colors">
+                  <span className="text-sm font-bold text-gray-500 flex-1">Select an Inspector</span>
+                  <UsersIcon className="w-5 h-5 text-gray-500" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Panel Footer */}
+          <div className="p-6 shrink-0 bg-[#e6e9ef] shadow-[0_-4px_6px_-4px_#c4c7cc] flex items-center gap-4 z-10">
+            <button className="flex-1 bg-[#b2efcd] hover:bg-[#9de4be] text-[#2c5126] shadow-[4px_4px_8px_#c4c7cc,-4px_-4px_8px_#ffffff] active:shadow-[inset_3px_3px_6px_#9de4be,inset_-3px_-3px_6px_#c5fadb] font-bold text-sm py-3.5 rounded-xl transition-all">
+              Save Changes
+            </button>
+            <button 
+              onClick={() => setSelectedComplaint(null)}
+              className="flex-1 bg-[#e6e9ef] text-gray-700 shadow-[4px_4px_8px_#c4c7cc,-4px_-4px_8px_#ffffff] active:shadow-[inset_3px_3px_6px_#c4c7cc,inset_-3px_-3px_6px_#ffffff] font-bold text-sm py-3.5 rounded-xl transition-all"
+            >
+              Cancel
+            </button>
+          </div>
+        </Card>
+      )}
     </div>
   );
 }
