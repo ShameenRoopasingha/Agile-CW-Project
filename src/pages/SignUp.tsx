@@ -168,7 +168,7 @@ export function SignUp() {
                       placeholder="e.g., 1234567890"
                       icon={<BuildingOffice2Icon className="h-5 w-5 text-gray-400" />}
                       crossOrigin={undefined}
-                      className="!border-none !bg-[#f0f2f5] !rounded-xl shadow-[inset_4px_4px_8px_#c4c7cc,inset_-4px_-4px_8px_#ffffff]"
+                      className="!h-[54px] !border-none !bg-[#f0f2f5] !rounded-xl shadow-[inset_4px_4px_8px_#c4c7cc,inset_-4px_-4px_8px_#ffffff]"
                     />
                     <Typography variant="small" color="gray" className="mt-2 text-xs">
                       10-digit number on your municipal tax receipt.
@@ -184,14 +184,14 @@ export function SignUp() {
                       placeholder="e.g., A.B. Perera"
                       icon={<UserIcon className="h-5 w-5 text-gray-400" />}
                       crossOrigin={undefined}
-                      className="!border-none !bg-[#f0f2f5] !rounded-xl shadow-[inset_4px_4px_8px_#c4c7cc,inset_-4px_-4px_8px_#ffffff]"
+                      className="!h-[54px] !border-none !bg-[#f0f2f5] !rounded-xl shadow-[inset_4px_4px_8px_#c4c7cc,inset_-4px_-4px_8px_#ffffff]"
                     />
                   </div>
                 </div>
 
                 {/* Home Town + Landmark */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-6">
-                  <Select label="Home Town" className="!border-none !bg-[#f0f2f5] !rounded-xl shadow-[inset_4px_4px_8px_#c4c7cc,inset_-4px_-4px_8px_#ffffff]">
+                  <Select label="Home Town" className="!h-[54px] !border-none !bg-[#f0f2f5] !rounded-xl shadow-[inset_4px_4px_8px_#c4c7cc,inset_-4px_-4px_8px_#ffffff]">
                     {HOME_TOWNS.map((town) => (
                       <Option key={town.value} value={town.value}>
                         {town.label}
@@ -206,7 +206,7 @@ export function SignUp() {
                     placeholder="e.g., Near Park"
                     icon={<MapPinIcon className="h-5 w-5 text-gray-400" />}
                     crossOrigin={undefined}
-                      className="!border-none !bg-[#f0f2f5] !rounded-xl shadow-[inset_4px_4px_8px_#c4c7cc,inset_-4px_-4px_8px_#ffffff]"
+                      className="!h-[54px] !border-none !bg-[#f0f2f5] !rounded-xl shadow-[inset_4px_4px_8px_#c4c7cc,inset_-4px_-4px_8px_#ffffff]"
                   />
                 </div>
               </div>
@@ -228,7 +228,7 @@ export function SignUp() {
                   placeholder="name@example.com"
                   icon={<EnvelopeIcon className="h-5 w-5 text-gray-400" />}
                   crossOrigin={undefined}
-                      className="!border-none !bg-[#f0f2f5] !rounded-xl shadow-[inset_4px_4px_8px_#c4c7cc,inset_-4px_-4px_8px_#ffffff]"
+                      className="!h-[54px] !border-none !bg-[#f0f2f5] !rounded-xl shadow-[inset_4px_4px_8px_#c4c7cc,inset_-4px_-4px_8px_#ffffff]"
                 />
 
                 {/* Passwords */}
@@ -240,7 +240,7 @@ export function SignUp() {
                       label="Password"
                       placeholder="••••••••"
                       crossOrigin={undefined}
-                      className="!border-none !bg-[#f0f2f5] !rounded-xl shadow-[inset_4px_4px_8px_#c4c7cc,inset_-4px_-4px_8px_#ffffff]"
+                      className="!h-[54px] !border-none !bg-[#f0f2f5] !rounded-xl shadow-[inset_4px_4px_8px_#c4c7cc,inset_-4px_-4px_8px_#ffffff]"
                     />
                     <IconButton
                       variant="text"
@@ -263,7 +263,7 @@ export function SignUp() {
                       label="Confirm Password"
                       placeholder="••••••••"
                       crossOrigin={undefined}
-                      className="!border-none !bg-[#f0f2f5] !rounded-xl shadow-[inset_4px_4px_8px_#c4c7cc,inset_-4px_-4px_8px_#ffffff]"
+                      className="!h-[54px] !border-none !bg-[#f0f2f5] !rounded-xl shadow-[inset_4px_4px_8px_#c4c7cc,inset_-4px_-4px_8px_#ffffff]"
                     />
                     <IconButton
                       variant="text"

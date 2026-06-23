@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   MagnifyingGlassIcon,
   BellIcon,
@@ -25,7 +25,19 @@ const NAVIGATION = [
 
 export function AdminLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+
+  const handleLogoutClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setShowLogoutDialog(true);
+  };
+
+  const handleConfirmLogout = () => {
+    setShowLogoutDialog(false);
+    navigate("/login");
+  };
 
   return (
     <div className="flex h-screen bg-[#e6e9ef] overflow-hidden">
@@ -84,13 +96,13 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
         </nav>
 
         <div className="p-4 mb-4">
-          <Link
-            to="/login"
-            className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-[#c5eacc] text-[#3d6e32] font-semibold hover:bg-[#b0dfb9] transition-colors"
+          <button
+            onClick={handleLogoutClick}
+            className="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-xl bg-[#c5eacc] text-[#3d6e32] font-semibold hover:bg-[#b0dfb9] transition-colors cursor-pointer"
           >
             <ArrowLeftOnRectangleIcon className="h-5 w-5" />
             Log out
-          </Link>
+          </button>
         </div>
       </aside>
 
@@ -107,7 +119,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
                 type="text"
                 placeholder="Global Search.."
                 icon={<MagnifyingGlassIcon className="h-5 w-5" />}
-                className="!border-none !bg-[#f0f2f5] !rounded-xl shadow-[inset_4px_4px_8px_#c4c7cc,inset_-4px_-4px_8px_#ffffff]"
+                className="!h-[54px] !border-none !bg-[#f0f2f5] !rounded-xl shadow-[inset_4px_4px_8px_#c4c7cc,inset_-4px_-4px_8px_#ffffff]"
                 labelProps={{ className: "hidden" }}
                 crossOrigin={undefined}
               />
@@ -133,6 +145,34 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
           {children}
         </div>
       </main>
+
+      {/* Logout Dialog Overlay */}
+      {showLogoutDialog && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#e6e9ef]/60 backdrop-blur-md">
+          <div className="bg-[#e6e9ef] p-8 rounded-3xl shadow-[20px_20px_40px_#c4c7cc,-20px_-20px_40px_#ffffff] w-[90%] max-w-sm border border-white/50">
+             <Typography variant="h5" color="blue-gray" className="font-bold mb-3 text-center">
+               Logout Confirmation
+             </Typography>
+             <Typography className="text-sm font-medium text-gray-600 mb-8 text-center">
+               Are you sure you want to log out of your session?
+             </Typography>
+             <div className="flex justify-center gap-6">
+               <button 
+                 onClick={() => setShowLogoutDialog(false)} 
+                 className="px-6 py-2.5 rounded-xl font-bold text-sm text-gray-700 bg-[#e6e9ef] shadow-[6px_6px_12px_#c4c7cc,-6px_-6px_12px_#ffffff] hover:shadow-[inset_2px_2px_5px_#c4c7cc,inset_-2px_-2px_5px_#ffffff] transition-shadow duration-300"
+               >
+                 Cancel
+               </button>
+               <button 
+                 onClick={handleConfirmLogout} 
+                 className="px-6 py-2.5 rounded-xl font-bold text-sm text-red-500 bg-[#ffd9d9] shadow-[6px_6px_12px_#c4c7cc,-6px_-6px_12px_#ffffff] hover:shadow-[inset_2px_2px_5px_#c4c7cc,inset_-2px_-2px_5px_#ffffff] transition-shadow duration-300"
+               >
+                 Logout
+               </button>
+             </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
