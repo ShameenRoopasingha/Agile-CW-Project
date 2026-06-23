@@ -19,7 +19,7 @@ const NAVIGATION = [
   { name: "Dashboard", href: "/admin/dashboard", icon: Squares2X2Icon },
   { name: "Staff Management", href: "#", icon: UsersIcon },
   { name: "Citizen Accounts", href: "#", icon: UserGroupIcon },
-  { name: "Manage Complaints", href: "#", icon: ChatBubbleLeftEllipsisIcon },
+  { name: "Manage Complaints", href: "/admin/complaints", icon: ChatBubbleLeftEllipsisIcon },
   { name: "System Settings", href: "#", icon: Cog6ToothIcon },
 ];
 

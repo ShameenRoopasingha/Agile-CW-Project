@@ -5,7 +5,7 @@ import { SignUp } from "./pages/SignUp";
 import { Login } from "./pages/Login";
 import { ResetPassword } from "./pages/ResetPassword";
 import { Dashboard } from "./pages/admin/Dashboard";
-
+import { Complaints } from "./pages/admin/Complaints";
 /**
  * Root application component.
  *
@@ -21,6 +21,7 @@ export default function App() {
     <Routes>
       <Route path="/admin" element={<AdminLayout><Outlet /></AdminLayout>}>
         <Route path="dashboard" element={<Dashboard />} />
+        <Route path="complaints" element={<Complaints />} />
         <Route index element={<Navigate to="dashboard" replace />} />
       </Route>
       
