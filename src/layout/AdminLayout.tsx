@@ -107,7 +107,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
+      <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
         {/* Floating Global Actions */}
         <div className="absolute top-0 right-0 left-0 h-20 pointer-events-none z-20 flex justify-between items-start p-4 sm:p-6">
           <div className="pointer-events-auto">
