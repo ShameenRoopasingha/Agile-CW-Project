@@ -1,5 +1,5 @@
-import { useState, type FormEvent } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect, type FormEvent } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import {
   ArrowRightIcon,
   EyeIcon,
@@ -8,6 +8,7 @@ import {
   XMarkIcon,
   EnvelopeIcon,
 } from "@heroicons/react/24/outline";
+import axios from "axios";
 
 // ── Shared modules ─────────────────────────────────────────────────────
 import {
@@ -22,9 +23,14 @@ import {
 import { BRAND } from "../constants";
 import illustration from "../assets/illustration.png";
 
+// ── API ────────────────────────────────────────────────────────────────
+import { citizenLogin } from "../services/api";
+
 // ── Main component ─────────────────────────────────────────────────────
 
 export function Login() {
+  const navigate = useNavigate();
+
   // Password visibility toggle
   const [showPassword, setShowPassword] = useState(false);
 
@@ -34,7 +40,21 @@ export function Login() {
   // Hold dynamic error messages from form submission exceptions
   const [errorMsg, setErrorMsg] = useState("");
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  // Loading state
+  const [loading, setLoading] = useState(false);
+
+  // Pre-fill email from localStorage if "Remember me" was checked previously
+  const [savedEmail, setSavedEmail] = useState("");
+
+  useEffect(() => {
+    const remembered = localStorage.getItem("rememberedEmail");
+    if (remembered) {
+      setSavedEmail(remembered);
+      setRememberMe(true);
+    }
+  }, []);
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setErrorMsg(""); // Clear previous errors
 
@@ -49,15 +69,33 @@ export function Login() {
         throw new Error("Please enter both your email and password.");
       }
 
-      // TODO: call actual login API here
-      console.log("Login validation passed! Payload:", {
-        email,
-        password,
-        rememberMe,
-      });
+      setLoading(true);
+
+      const response = await citizenLogin({ email, password });
+
+      // Store token on success
+      if (response.data?.accessToken) {
+        localStorage.setItem("accessToken", response.data.accessToken);
+      }
+
+      // Handle "Remember me"
+      if (rememberMe) {
+        localStorage.setItem("rememberedEmail", email);
+      } else {
+        localStorage.removeItem("rememberedEmail");
+      }
+
+      // Navigate to home/dashboard
+      navigate("/");
+
     } catch (err) {
-      // Display errors caught during validation
-      setErrorMsg(err instanceof Error ? err.message : "An unexpected error occurred during login.");
+      if (axios.isAxiosError(err)) {
+        setErrorMsg(err.response?.data?.message || err.response?.data?.error || "Invalid credentials. Please try again.");
+      } else {
+        setErrorMsg(err instanceof Error ? err.message : "An unexpected error occurred during login.");
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -147,6 +185,7 @@ export function Login() {
                     name="email"
                     type="text"
                     placeholder="name@example.com"
+                    defaultValue={savedEmail}
                     icon={<EnvelopeIcon className="h-5 w-5 text-gray-400" />}
                     crossOrigin={undefined}
                     className="!bg-white"
@@ -208,11 +247,12 @@ export function Login() {
               {/* Submit */}
               <Button
                 type="submit"
-                className="flex items-center justify-center gap-3 !bg-[#629955] !text-white font-bold !shadow-[6px_6px_12px_#4e7a44,-6px_-6px_12px_#76b866] active:!shadow-[inset_4px_4px_8px_#4e7a44,inset_-4px_-4px_8px_#76b866] transition-all duration-300 py-4 rounded-xl text-lg border-none"
+                disabled={loading}
+                className="flex items-center justify-center gap-3 !bg-[#629955] !text-white font-bold !shadow-[6px_6px_12px_#4e7a44,-6px_-6px_12px_#76b866] active:!shadow-[inset_4px_4px_8px_#4e7a44,inset_-4px_-4px_8px_#76b866] transition-all duration-300 py-4 rounded-xl text-lg border-none disabled:opacity-60"
                 fullWidth
               >
-                Login to account
-                <ArrowRightIcon className="h-5 w-5" strokeWidth={2.5} />
+                {loading ? "Logging in..." : "Login to account"}
+                {!loading && <ArrowRightIcon className="h-5 w-5" strokeWidth={2.5} />}
               </Button>
 
               {/* Register redirect */}
