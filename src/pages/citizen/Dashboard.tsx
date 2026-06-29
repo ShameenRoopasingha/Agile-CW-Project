@@ -101,10 +101,10 @@ export function CitizenDashboard() {
 
         {/* Action Buttons */}
         <div className="flex items-center gap-3">
-          <button className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-[#3d6e32] bg-[#e6e9ef] shadow-[6px_6px_12px_#c4c7cc,-6px_-6px_12px_#ffffff] hover:shadow-[inset_3px_3px_6px_#c4c7cc,inset_-3px_-3px_6px_#ffffff] transition-shadow duration-300">
-            <ArrowDownTrayIcon className="h-4 w-4" />
-            Download PDF
-          </button>
+          {/* <button className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-[#3d6e32] bg-[#e6e9ef] shadow-[6px_6px_12px_#c4c7cc,-6px_-6px_12px_#ffffff] hover:shadow-[inset_3px_3px_6px_#c4c7cc,inset_-3px_-3px_6px_#ffffff] transition-shadow duration-300"> */}
+          {/* <ArrowDownTrayIcon className="h-4 w-4" /> */}
+          {/* Download PDF */}
+          {/* </button> */}
           <button className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-[#629955] shadow-[4px_4px_8px_#c4c7cc,-4px_-4px_8px_#ffffff] hover:bg-[#4d7e42] transition-colors duration-200">
             Request Special Pickup
           </button>
@@ -178,18 +178,16 @@ export function CitizenDashboard() {
                 return (
                   <div
                     key={idx}
-                    className={`min-h-[80px] p-1.5 border-b border-r border-gray-200/50 relative ${
-                      !cell.isCurrentMonth ? "opacity-40" : ""
-                    } ${idx % 7 === 0 ? "border-l border-gray-200/50" : ""}`}
+                    className={`min-h-[80px] p-1.5 border-b border-r border-gray-200/50 relative ${!cell.isCurrentMonth ? "opacity-40" : ""
+                      } ${idx % 7 === 0 ? "border-l border-gray-200/50" : ""}`}
                   >
                     {/* Day Number */}
                     <div className="flex items-start justify-between">
                       <span
-                        className={`inline-flex items-center justify-center w-7 h-7 rounded-lg text-xs font-bold ${
-                          isToday
+                        className={`inline-flex items-center justify-center w-7 h-7 rounded-lg text-xs font-bold ${isToday
                             ? "bg-[#629955] text-white shadow-[2px_2px_4px_#c4c7cc]"
                             : "text-gray-700"
-                        }`}
+                          }`}
                       >
                         {cell.day}
                       </span>
@@ -199,11 +197,10 @@ export function CitizenDashboard() {
                     {events.map((evt, eIdx) => (
                       <div
                         key={eIdx}
-                        className={`mt-1 px-1.5 py-1 rounded-md text-[10px] font-bold leading-tight ${
-                          evt.type === "perishable"
+                        className={`mt-1 px-1.5 py-1 rounded-md text-[10px] font-bold leading-tight ${evt.type === "perishable"
                             ? "bg-[#c5eacc] text-[#2c5126]"
                             : "bg-[#c5e3ec] text-[#1a5a6e]"
-                        }`}
+                          }`}
                       >
                         <span className="block uppercase text-[8px] font-extrabold tracking-wider opacity-80">
                           {evt.type === "perishable" ? "PERISHABLE" : "NON-PERISH"}

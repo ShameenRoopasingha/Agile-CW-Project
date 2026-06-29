@@ -21,10 +21,10 @@ import { Typography, IconButton } from "../lib/mt-components";
 const NAVIGATION = [
   { name: "Calendar", href: "/citizen/dashboard", icon: CalendarDaysIcon },
   { name: "Track Garbage Truck", href: "/citizen/schedule", icon: TruckIcon },
-  { name: "Bulky Waste", href: "/citizen/guide", icon: ArchiveBoxIcon },
-  { name: "Payments", href: "/citizen/profile", icon: CreditCardIcon },
+  { name: "Bulky Waste", href: "/citizen/bulky-waste", icon: ArchiveBoxIcon },
+  // { name: "Payments", href: "/citizen/profile", icon: CreditCardIcon },
   { name: "My Complaints", href: "/citizen/complaints", icon: ChatBubbleLeftEllipsisIcon },
-  { name: "Violation Notices", href: "/citizen/violations", icon: ExclamationTriangleIcon },
+  // { name: "Violation Notices", href: "/citizen/violations", icon: ExclamationTriangleIcon },
 ];
 
 export function CitizenLayout({ children }: { children: React.ReactNode }) {
@@ -49,7 +49,7 @@ export function CitizenLayout({ children }: { children: React.ReactNode }) {
     if (location.pathname.includes("/citizen/dashboard")) return { title: "Dashboard", subtitle: "Your waste management overview" };
     if (location.pathname.includes("/citizen/schedule")) return { title: "Collection Schedule", subtitle: "Upcoming waste collection dates for your area" };
     if (location.pathname.includes("/citizen/complaints")) return { title: "My Complaints", subtitle: "Track and submit waste-related complaints" };
-    if (location.pathname.includes("/citizen/guide")) return { title: "Waste Segregation Guide", subtitle: "Learn how to sort your waste correctly" };
+    if (location.pathname.includes("/citizen/bulky-waste")) return { title: "Bulky Waste Request", subtitle: "Schedule and track bulky waste pickups" };
     if (location.pathname.includes("/citizen/profile")) return { title: "My Profile", subtitle: "Manage your account details" };
     return { title: "Dashboard", subtitle: "" };
   };
@@ -60,7 +60,7 @@ export function CitizenLayout({ children }: { children: React.ReactNode }) {
     <div className="flex h-screen bg-[#e6e9ef] overflow-hidden">
       {/* Mobile Sidebar Overlay */}
       {sidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 z-40 bg-black/50 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
@@ -68,9 +68,8 @@ export function CitizenLayout({ children }: { children: React.ReactNode }) {
 
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-72 transform bg-[#e6e9ef] flex flex-col transition-transform duration-300 lg:static lg:translate-x-0 ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`fixed inset-y-0 left-0 z-50 w-72 transform bg-[#e6e9ef] flex flex-col transition-transform duration-300 lg:static lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
         style={{
           boxShadow: "16px 16px 32px #c4c7cc, -16px -16px 32px #ffffff"
         }}
@@ -103,11 +102,10 @@ export function CitizenLayout({ children }: { children: React.ReactNode }) {
                 key={item.name}
                 to={item.href}
                 onClick={() => setSidebarOpen(false)}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
-                  isActive
-                    ? "bg-[#c5eacc] text-[#3d6e32] shadow-[4px_4px_10px_#c4c7cc,-4px_-4px_10px_#ffffff]"
-                    : "text-gray-600 hover:bg-[#d9dce1]"
-                }`}
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${isActive
+                  ? "bg-[#c5eacc] text-[#3d6e32] shadow-[4px_4px_10px_#c4c7cc,-4px_-4px_10px_#ffffff]"
+                  : "text-gray-600 hover:bg-[#d9dce1]"
+                  }`}
               >
                 <item.icon className={`h-5 w-5 ${isActive ? "text-[#3d6e32]" : "text-gray-500"}`} />
                 <span className="font-medium">{item.name}</span>
@@ -143,7 +141,7 @@ export function CitizenLayout({ children }: { children: React.ReactNode }) {
             <IconButton variant="text" color="blue-gray" className="lg:hidden" onClick={() => setSidebarOpen(true)}>
               <Bars3Icon className="h-6 w-6" />
             </IconButton>
-            
+
             {/* Search Bar */}
             <div className="hidden md:flex flex-1 max-w-md">
               <div className="relative w-full">
@@ -180,26 +178,26 @@ export function CitizenLayout({ children }: { children: React.ReactNode }) {
       {showLogoutDialog && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#e6e9ef]/60 backdrop-blur-md">
           <div className="bg-[#e6e9ef] p-8 rounded-3xl shadow-[20px_20px_40px_#c4c7cc,-20px_-20px_40px_#ffffff] w-[90%] max-w-sm border border-white/50">
-             <Typography variant="h5" color="blue-gray" className="font-bold mb-3 text-center">
-               Logout Confirmation
-             </Typography>
-             <Typography className="text-sm font-medium text-gray-600 mb-8 text-center">
-               Are you sure you want to log out of your session?
-             </Typography>
-             <div className="flex justify-center gap-6">
-               <button 
-                 onClick={() => setShowLogoutDialog(false)} 
-                 className="px-6 py-2.5 rounded-xl font-bold text-sm text-gray-700 bg-[#e6e9ef] shadow-[6px_6px_12px_#c4c7cc,-6px_-6px_12px_#ffffff] hover:shadow-[inset_2px_2px_5px_#c4c7cc,inset_-2px_-2px_5px_#ffffff] transition-shadow duration-300"
-               >
-                 Cancel
-               </button>
-               <button 
-                 onClick={handleConfirmLogout} 
-                 className="px-6 py-2.5 rounded-xl font-bold text-sm text-red-500 bg-[#ffd9d9] shadow-[6px_6px_12px_#c4c7cc,-6px_-6px_12px_#ffffff] hover:shadow-[inset_2px_2px_5px_#c4c7cc,inset_-2px_-2px_5px_#ffffff] transition-shadow duration-300"
-               >
-                 Logout
-               </button>
-             </div>
+            <Typography variant="h5" color="blue-gray" className="font-bold mb-3 text-center">
+              Logout Confirmation
+            </Typography>
+            <Typography className="text-sm font-medium text-gray-600 mb-8 text-center">
+              Are you sure you want to log out of your session?
+            </Typography>
+            <div className="flex justify-center gap-6">
+              <button
+                onClick={() => setShowLogoutDialog(false)}
+                className="px-6 py-2.5 rounded-xl font-bold text-sm text-gray-700 bg-[#e6e9ef] shadow-[6px_6px_12px_#c4c7cc,-6px_-6px_12px_#ffffff] hover:shadow-[inset_2px_2px_5px_#c4c7cc,inset_-2px_-2px_5px_#ffffff] transition-shadow duration-300"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmLogout}
+                className="px-6 py-2.5 rounded-xl font-bold text-sm text-red-500 bg-[#ffd9d9] shadow-[6px_6px_12px_#c4c7cc,-6px_-6px_12px_#ffffff] hover:shadow-[inset_2px_2px_5px_#c4c7cc,inset_-2px_-2px_5px_#ffffff] transition-shadow duration-300"
+              >
+                Logout
+              </button>
+            </div>
           </div>
         </div>
       )}

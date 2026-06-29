@@ -11,7 +11,7 @@ export interface UserData {
   email: string;
 }
 
-export type Role = "citizen" | "admin" | null;
+export type Role = "citizen" | "admin" | "driver" | null;
 
 interface AuthContextType {
   user: UserData | null;
