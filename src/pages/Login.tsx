@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   ArrowRightIcon,
   EyeIcon,
@@ -21,10 +21,15 @@ import {
 } from "../lib/mt-components";
 import { BRAND } from "../constants";
 import illustration from "../assets/illustration.png";
+import { loginCitizen } from "../lib/api";
+import { useAuth } from "../context/AuthContext";
 
 // ── Main component ─────────────────────────────────────────────────────
 
 export function Login() {
+  const navigate = useNavigate();
+  const { login } = useAuth();
+  
   // Password visibility toggle
   const [showPassword, setShowPassword] = useState(false);
 
@@ -33,10 +38,12 @@ export function Login() {
 
   // Hold dynamic error messages from form submission exceptions
   const [errorMsg, setErrorMsg] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setErrorMsg(""); // Clear previous errors
+    setIsLoading(true);
 
     try {
       // Extract data from the form
@@ -49,15 +56,24 @@ export function Login() {
         throw new Error("Please enter both your email and password.");
       }
 
-      // TODO: call actual login API here
-      console.log("Login validation passed! Payload:", {
-        email,
-        password,
-        rememberMe,
-      });
-    } catch (err) {
+      // Call actual login API here
+      const response = await loginCitizen({ email, password });
+      
+      if (response && response.accessToken) {
+        // Since login endpoint only returns accessToken, we save it and let AuthContext checkAuth fetch the user data
+        await login(response.accessToken);
+        
+        // Navigation is handled by RootRedirect based on role after login succeeds
+        navigate("/");
+      } else {
+         throw new Error("Invalid response from server");
+      }
+      
+    } catch (err: any) {
       // Display errors caught during validation
-      setErrorMsg(err instanceof Error ? err.message : "An unexpected error occurred during login.");
+      setErrorMsg(err instanceof Error ? err.message : (err?.message || "An unexpected error occurred during login."));
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -208,11 +224,12 @@ export function Login() {
               {/* Submit */}
               <Button
                 type="submit"
-                className="flex items-center justify-center gap-3 !bg-[#629955] !text-white font-bold !shadow-[6px_6px_12px_#4e7a44,-6px_-6px_12px_#76b866] active:!shadow-[inset_4px_4px_8px_#4e7a44,inset_-4px_-4px_8px_#76b866] transition-all duration-300 py-4 rounded-xl text-lg border-none"
+                disabled={isLoading}
+                className="flex items-center justify-center gap-3 !bg-[#629955] !text-white font-bold !shadow-[6px_6px_12px_#4e7a44,-6px_-6px_12px_#76b866] active:!shadow-[inset_4px_4px_8px_#4e7a44,inset_-4px_-4px_8px_#76b866] transition-all duration-300 py-4 rounded-xl text-lg border-none disabled:opacity-70"
                 fullWidth
               >
-                Login to account
-                <ArrowRightIcon className="h-5 w-5" strokeWidth={2.5} />
+                {isLoading ? "Logging in..." : "Login to account"}
+                {!isLoading && <ArrowRightIcon className="h-5 w-5" strokeWidth={2.5} />}
               </Button>
 
               {/* Register redirect */}
