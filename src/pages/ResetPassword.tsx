@@ -1,12 +1,14 @@
 import { useState, type FormEvent, useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { 
   EnvelopeIcon, 
   ArrowRightIcon,
   CheckIcon,
   EyeIcon,
   EyeSlashIcon,
-  InformationCircleIcon
+  InformationCircleIcon,
+  ExclamationCircleIcon,
+  XMarkIcon
 } from "@heroicons/react/24/outline";
 
 // ── Shared modules ─────────────────────────────────────────────────────
@@ -17,13 +19,19 @@ import {
   Card,
   CardBody,
   IconButton,
+  Alert,
 } from "../lib/mt-components";
 import { BRAND } from "../constants";
 import illustration from "../assets/illustration.png";
+import { forgotPassword, verifyOtp, resetPassword } from "../lib/api";
+import { useAuth } from "../context/AuthContext";
 
 // ── Main component ─────────────────────────────────────────────────────
 
 export function ResetPassword() {
+  const navigate = useNavigate();
+  const { login } = useAuth();
+
   const [step, setStep] = useState(1);
   const [email, setEmail] = useState("");
   
@@ -37,20 +45,84 @@ export function ResetPassword() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  // UI state
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+
   // ── Handlers ──
-  const handleSendOtp = (e: FormEvent<HTMLFormElement>) => {
+  const handleSendOtp = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setStep(2);
+    setErrorMsg("");
+    setIsLoading(true);
+
+    try {
+      if (!email) throw new Error("Please enter your email address.");
+      
+      const response = await forgotPassword({ email });
+      if (response && response.message === "OTP sent to email") {
+        setStep(2);
+      } else {
+        throw new Error(response?.message || "Unexpected response from server");
+      }
+    } catch (err: any) {
+      setErrorMsg(err instanceof Error ? err.message : (err?.message || "Failed to send OTP"));
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleVerifyOtp = (e: FormEvent) => {
+  const handleVerifyOtp = async (e: FormEvent) => {
     e.preventDefault();
-    setStep(3);
+    setErrorMsg("");
+    setIsLoading(true);
+
+    const otpString = otp.join("");
+    if (otpString.length !== 6) {
+      setErrorMsg("Please enter the complete 6-digit OTP.");
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const response = await verifyOtp({ email, otp: otpString });
+      
+      if (response && response.message === "OTP verified successfully") {
+        setStep(3);
+      } else {
+        throw new Error(response?.message || "Invalid OTP");
+      }
+    } catch (err: any) {
+      setErrorMsg(err instanceof Error ? err.message : (err?.message || "OTP verification failed"));
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleResetPassword = (e: FormEvent<HTMLFormElement>) => {
+  const handleResetPassword = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setStep(4);
+    setErrorMsg("");
+    setIsLoading(true);
+
+    try {
+      if (!newPassword || !confirmPassword) throw new Error("Please enter and confirm your new password.");
+      if (newPassword !== confirmPassword) throw new Error("Passwords do not match.");
+      if (newPassword.length < 8) throw new Error("Password must be at least 8 characters long.");
+      
+      const otpString = otp.join("");
+      
+      const response = await resetPassword({ email, otp: otpString, password: newPassword });
+      
+      if (response && response.message === "Password updated successfully" && response.accessToken) {
+         await login(response.accessToken);
+         setStep(4);
+      } else {
+         throw new Error(response?.message || "Failed to reset password");
+      }
+    } catch (err: any) {
+      setErrorMsg(err instanceof Error ? err.message : (err?.message || "Failed to reset password"));
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleOtpChange = (index: number, value: string) => {
@@ -117,10 +189,11 @@ export function ResetPassword() {
 
               <Button
                 type="submit"
-                className="mt-2 flex items-center justify-center gap-3 !bg-[#629955] !text-white font-bold !shadow-[6px_6px_12px_#4e7a44,-6px_-6px_12px_#76b866] active:!shadow-[inset_4px_4px_8px_#4e7a44,inset_-4px_-4px_8px_#76b866] transition-all duration-300 py-4 rounded-xl text-lg border-none"
+                disabled={isLoading}
+                className="mt-2 flex items-center justify-center gap-3 !bg-[#629955] !text-white font-bold !shadow-[6px_6px_12px_#4e7a44,-6px_-6px_12px_#76b866] active:!shadow-[inset_4px_4px_8px_#4e7a44,inset_-4px_-4px_8px_#76b866] transition-all duration-300 py-4 rounded-xl text-lg border-none disabled:opacity-70"
                 fullWidth
               >
-                Send OTP
+                {isLoading ? "Sending OTP..." : "Send OTP"}
               </Button>
 
               <div className="mt-8 flex justify-center">
@@ -171,13 +244,16 @@ export function ResetPassword() {
               <div className="flex flex-col sm:flex-row gap-4 mt-2">
                 <Button
                   type="submit"
-                  className="flex-1 flex items-center justify-center gap-3 !bg-[#629955] !text-white font-bold !shadow-[6px_6px_12px_#4e7a44,-6px_-6px_12px_#76b866] active:!shadow-[inset_4px_4px_8px_#4e7a44,inset_-4px_-4px_8px_#76b866] transition-all duration-300 py-4 rounded-xl text-base border-none"
+                  disabled={isLoading}
+                  className="flex-1 flex items-center justify-center gap-3 !bg-[#629955] !text-white font-bold !shadow-[6px_6px_12px_#4e7a44,-6px_-6px_12px_#76b866] active:!shadow-[inset_4px_4px_8px_#4e7a44,inset_-4px_-4px_8px_#76b866] transition-all duration-300 py-4 rounded-xl text-base border-none disabled:opacity-70"
                 >
-                  Verify OTP
+                  {isLoading ? "Verifying..." : "Verify OTP"}
                 </Button>
                 <Button
+                  type="button"
                   variant="outlined"
-                  className="flex-1 flex items-center justify-center border-2 border-[#629955] text-[#629955] font-bold py-4 rounded-xl text-base hover:bg-[#f0f5ee] transition-all duration-300"
+                  disabled={isLoading}
+                  className="flex-1 flex items-center justify-center border-2 border-[#629955] text-[#629955] font-bold py-4 rounded-xl text-base hover:bg-[#f0f5ee] transition-all duration-300 disabled:opacity-70"
                   onClick={() => console.log("Resend OTP")}
                 >
                   Resend OTP
@@ -228,7 +304,7 @@ export function ResetPassword() {
                 </div>
                 <Typography variant="small" color="gray" className="mt-2 text-xs flex items-start gap-1.5">
                   <InformationCircleIcon className="w-4 h-4 flex-shrink-0 mt-0.5 text-gray-500" /> 
-                  Minimum 8 characters, including one uppercase letter and one number.
+                  Minimum 8 characters.
                 </Typography>
               </div>
 
@@ -264,11 +340,12 @@ export function ResetPassword() {
 
               <Button
                 type="submit"
-                className="flex items-center justify-center gap-3 !bg-[#629955] !text-white font-bold !shadow-[6px_6px_12px_#4e7a44,-6px_-6px_12px_#76b866] active:!shadow-[inset_4px_4px_8px_#4e7a44,inset_-4px_-4px_8px_#76b866] transition-all duration-300 py-4 rounded-xl text-lg border-none"
+                disabled={isLoading}
+                className="flex items-center justify-center gap-3 !bg-[#629955] !text-white font-bold !shadow-[6px_6px_12px_#4e7a44,-6px_-6px_12px_#76b866] active:!shadow-[inset_4px_4px_8px_#4e7a44,inset_-4px_-4px_8px_#76b866] transition-all duration-300 py-4 rounded-xl text-lg border-none disabled:opacity-70"
                 fullWidth
               >
-                Reset Password
-                <ArrowRightIcon className="h-5 w-5" strokeWidth={2.5} />
+                {isLoading ? "Updating..." : "Reset Password"}
+                {!isLoading && <ArrowRightIcon className="h-5 w-5" strokeWidth={2.5} />}
               </Button>
             </form>
           </>
@@ -286,15 +363,15 @@ export function ResetPassword() {
               Password updated
             </Typography>
             <Typography color="gray" className="mb-10 font-normal text-base text-center max-w-sm mx-auto">
-              Your password has been successfully reset. You can now use your new password to log in to your account.
+              Your password has been successfully reset. You can now access your dashboard.
             </Typography>
 
-            <Link to="/login" className="w-full block">
+            <Link to="/" className="w-full block">
               <Button
                 className="flex items-center justify-center gap-3 !bg-[#629955] !text-white font-bold !shadow-[6px_6px_12px_#4e7a44,-6px_-6px_12px_#76b866] active:!shadow-[inset_4px_4px_8px_#4e7a44,inset_-4px_-4px_8px_#76b866] transition-all duration-300 py-4 rounded-xl text-lg border-none"
                 fullWidth
               >
-                Back to login
+                Go to Dashboard
                 <ArrowRightIcon className="h-5 w-5" strokeWidth={2.5} />
               </Button>
             </Link>
@@ -337,7 +414,7 @@ export function ResetPassword() {
       {/* ─── Right panel: dynamic forms ─── */}
       <section className="w-full lg:w-1/2 lg:ml-auto flex flex-col items-center justify-center px-4 py-8 sm:py-12 sm:px-8 md:px-12 lg:px-20">
         <Card className="w-full max-w-[500px] bg-[#e6e9ef] shadow-[16px_16px_32px_#c4c7cc,-16px_-16px_32px_#ffffff] rounded-2xl sm:rounded-3xl border-none">
-          <CardBody className="p-6 sm:p-12">
+          <CardBody className="p-6 sm:p-12 overflow-hidden">
             
             {/* Step indicator */}
             <div className="flex items-center justify-between mb-8">
@@ -364,6 +441,29 @@ export function ResetPassword() {
                 className="w-full max-w-[220px] object-contain mix-blend-multiply"
               />
             </div>
+
+            {/* Error Message */}
+            {errorMsg && (
+              <Alert
+                color="red"
+                variant="ghost"
+                className="mb-8 border-l-4 border-red-500 rounded-lg font-medium text-sm flex items-center gap-2 py-3"
+                icon={<ExclamationCircleIcon className="h-5 w-5" />}
+                action={
+                  <IconButton
+                    variant="text"
+                    color="red"
+                    size="sm"
+                    className="!absolute top-2 right-2"
+                    onClick={() => setErrorMsg("")}
+                  >
+                    <XMarkIcon className="h-4 w-4" />
+                  </IconButton>
+                }
+              >
+                {errorMsg}
+              </Alert>
+            )}
 
             {renderStepContent()}
 
