@@ -1,0 +1,12 @@
+/*
+ * Global stylesheet
+ * Loaded before any component styles; sets up Tailwind and base tokens.
+ */
+
+@import "tailwindcss";
+
+@config "../tailwind.config.js";
+
+body {
+  background-color: #f8fafc; /* slate-50 – subtle off-white background */
+}
