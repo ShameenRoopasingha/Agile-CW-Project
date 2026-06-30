@@ -270,7 +270,7 @@ export function ResetPassword() {
               Create New Password
             </Typography>
             <Typography color="gray" className="mb-8 font-normal text-base">
-              OTP verified successfully. Create a strong password to protect your EcoCycle account.
+              OTP verified successfully. Create a strong password to protect your Clean Lanka account.
             </Typography>
 
             <form onSubmit={handleResetPassword} className="flex flex-col">

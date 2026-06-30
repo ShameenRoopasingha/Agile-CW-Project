@@ -11,7 +11,8 @@ import {
   EyeIcon,
   EyeSlashIcon,
   ChevronDownIcon,
-  PencilIcon
+  PencilIcon,
+  CheckCircleIcon
 } from "@heroicons/react/24/outline";
 import { Typography, IconButton } from "../../../../lib/mt-components";
 
@@ -23,6 +24,32 @@ interface AddStaffModalProps {
 export function AddStaffModal({ isOpen, onClose }: AddStaffModalProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+
+  // Form states
+  const [fullName, setFullName] = useState("");
+  const [role, setRole] = useState("");
+  const [email, setEmail] = useState("");
+  const [mobile, setMobile] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  const handleCreateAccount = () => {
+    // Show success notification
+    setShowSuccess(true);
+    // Clear form data
+    setFullName("");
+    setRole("");
+    setEmail("");
+    setMobile("");
+    setPassword("");
+    setConfirmPassword("");
+  };
+
+  const handleClose = () => {
+    setShowSuccess(false);
+    onClose();
+  };
 
   if (!isOpen) return null;
 
@@ -31,12 +58,33 @@ export function AddStaffModal({ isOpen, onClose }: AddStaffModalProps) {
       {/* Backdrop */}
       <div 
         className="absolute inset-0 bg-[#e6e9ef]/80 backdrop-blur-md"
-        onClick={onClose}
+        onClick={handleClose}
       />
       
       {/* Modal Card */}
-      <div className="relative w-full max-w-2xl bg-[#e6e9ef] rounded-[2rem] shadow-[24px_24px_48px_#c4c7cc,-24px_-24px_48px_#ffffff] border border-white/40 flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200">
+      <div className="relative w-full max-w-2xl bg-[#e6e9ef] rounded-[2rem] shadow-[24px_24px_48px_#c4c7cc,-24px_-24px_48px_#ffffff] border border-white/40 flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200 overflow-hidden">
         
+        {/* Success Overlay */}
+        {showSuccess && (
+          <div className="absolute inset-0 z-50 bg-[#e6e9ef]/95 backdrop-blur-sm flex flex-col items-center justify-center p-8 text-center animate-in fade-in duration-300">
+            <div className="w-20 h-20 rounded-full bg-[#186f45] text-white flex items-center justify-center mb-6 shadow-lg shadow-[#186f45]/20">
+              <CheckCircleIcon className="w-10 h-10" />
+            </div>
+            <Typography variant="h4" color="blue-gray" className="font-bold mb-2">
+              Staff Added Successfully!
+            </Typography>
+            <Typography className="text-gray-600 font-medium mb-8 max-w-sm">
+              The new account has been created. They will receive an email with their login credentials shortly.
+            </Typography>
+            <button 
+              onClick={handleClose}
+              className="px-8 py-3 bg-[#6cf3b7] text-[#145c39] rounded-xl font-bold shadow-[6px_6px_12px_#c4c7cc,-6px_-6px_12px_#ffffff] hover:shadow-[inset_2px_2px_4px_rgba(0,0,0,0.15)] transition-all"
+            >
+              Done
+            </button>
+          </div>
+        )}
+
         {/* Header */}
         <div className="px-8 py-6 border-b border-gray-300/50 flex justify-between items-start shrink-0">
           <div>
@@ -47,7 +95,7 @@ export function AddStaffModal({ isOpen, onClose }: AddStaffModalProps) {
               Create a new profile and assign operational roles.
             </Typography>
           </div>
-          <IconButton variant="text" color="blue-gray" onClick={onClose} className="rounded-full hover:bg-gray-200/50 -mr-2 -mt-2">
+          <IconButton variant="text" color="blue-gray" onClick={handleClose} className="rounded-full hover:bg-gray-200/50 -mr-2 -mt-2">
             <XMarkIcon className="w-6 h-6 text-gray-600" />
           </IconButton>
         </div>
@@ -79,7 +127,10 @@ export function AddStaffModal({ isOpen, onClose }: AddStaffModalProps) {
                 <UserIcon className="w-5 h-5 text-gray-500 mr-3 shrink-0" />
                 <input 
                   type="text" 
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
                   placeholder="e.g. John Doe" 
+                  autoComplete="off"
                   className="bg-transparent border-none outline-none w-full text-sm text-gray-800 font-bold placeholder-gray-400"
                 />
               </div>
@@ -90,12 +141,15 @@ export function AddStaffModal({ isOpen, onClose }: AddStaffModalProps) {
               <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2 ml-1">Role Assignment</label>
               <div className="relative flex items-center bg-[#f0f2f5] rounded-xl px-4 py-2 shadow-[inset_2px_2px_4px_#c4c7cc,inset_-2px_-2px_4px_#ffffff] h-12">
                 <BriefcaseIcon className="w-5 h-5 text-gray-500 mr-3 shrink-0" />
-                <select className="bg-transparent border-none outline-none w-full text-sm text-gray-800 font-bold appearance-none cursor-pointer">
-                  <option value="" disabled selected>Select Role</option>
-                  <option value="logistics">Logistics Coordinator</option>
-                  <option value="fleet">Fleet Supervisor</option>
-                  <option value="maintenance">Maintenance Tech</option>
-                  <option value="sustainability">Environmental Analyst</option>
+                <select 
+                  value={role}
+                  onChange={(e) => setRole(e.target.value)}
+                  className="bg-transparent border-none outline-none w-full text-sm text-gray-800 font-bold appearance-none cursor-pointer"
+                >
+                  <option value="" disabled>Select Role</option>
+                  <option value="PHI">PHI</option>
+                  <option value="Fleet Manager">Fleet Manager</option>
+                  <option value="Driver">Driver</option>
                 </select>
                 <ChevronDownIcon className="w-5 h-5 text-gray-500 absolute right-4 pointer-events-none" />
               </div>
@@ -108,7 +162,10 @@ export function AddStaffModal({ isOpen, onClose }: AddStaffModalProps) {
                 <EnvelopeIcon className="w-5 h-5 text-gray-500 mr-3 shrink-0" />
                 <input 
                   type="email" 
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   placeholder="john.doe@ecocycle.gov" 
+                  autoComplete="off"
                   className="bg-transparent border-none outline-none w-full text-sm text-gray-800 font-bold placeholder-gray-400"
                 />
               </div>
@@ -121,7 +178,10 @@ export function AddStaffModal({ isOpen, onClose }: AddStaffModalProps) {
                 <PhoneIcon className="w-5 h-5 text-gray-500 mr-3 shrink-0" />
                 <input 
                   type="tel" 
+                  value={mobile}
+                  onChange={(e) => setMobile(e.target.value)}
                   placeholder="+1 (555) 000-0000" 
+                  autoComplete="off"
                   className="bg-transparent border-none outline-none w-full text-sm text-gray-800 font-bold placeholder-gray-400"
                 />
               </div>
@@ -134,7 +194,10 @@ export function AddStaffModal({ isOpen, onClose }: AddStaffModalProps) {
                 <LockClosedIcon className="w-5 h-5 text-gray-500 mr-3 shrink-0" />
                 <input 
                   type={showPassword ? "text" : "password"} 
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••" 
+                  autoComplete="new-password"
                   className="bg-transparent border-none outline-none w-full text-sm text-gray-800 font-bold placeholder-gray-400 tracking-widest"
                 />
                 <button type="button" onClick={() => setShowPassword(!showPassword)} className="ml-2 text-gray-400 hover:text-gray-600 focus:outline-none">
@@ -150,7 +213,10 @@ export function AddStaffModal({ isOpen, onClose }: AddStaffModalProps) {
                 <LockClosedIcon className="w-5 h-5 text-gray-500 mr-3 shrink-0" />
                 <input 
                   type={showConfirmPassword ? "text" : "password"} 
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="••••••••" 
+                  autoComplete="new-password"
                   className="bg-transparent border-none outline-none w-full text-sm text-gray-800 font-bold placeholder-gray-400 tracking-widest"
                 />
                 <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="ml-2 text-gray-400 hover:text-gray-600 focus:outline-none">
@@ -165,12 +231,15 @@ export function AddStaffModal({ isOpen, onClose }: AddStaffModalProps) {
         {/* Footer Actions */}
         <div className="px-8 py-6 border-t border-gray-300/50 bg-[#e6e9ef] flex items-center justify-end gap-4 shrink-0 rounded-b-[2rem]">
           <button 
-            onClick={onClose}
+            onClick={handleClose}
             className="px-6 py-3 rounded-xl font-bold text-sm text-[#186f45] hover:bg-gray-200/50 transition-colors"
           >
             Cancel
           </button>
-          <button className="h-12 px-8 bg-[#6cf3b7] text-[#145c39] rounded-xl font-bold text-sm flex items-center gap-2 shadow-[6px_6px_12px_#c4c7cc,-6px_-6px_12px_#ffffff] hover:shadow-[inset_2px_2px_4px_rgba(0,0,0,0.15)] transition-all">
+          <button 
+            onClick={handleCreateAccount}
+            className="h-12 px-8 bg-[#6cf3b7] text-[#145c39] rounded-xl font-bold text-sm flex items-center gap-2 shadow-[6px_6px_12px_#c4c7cc,-6px_-6px_12px_#ffffff] hover:shadow-[inset_2px_2px_4px_rgba(0,0,0,0.15)] transition-all"
+          >
             <UserPlusIcon className="w-5 h-5" />
             Create Account
           </button>

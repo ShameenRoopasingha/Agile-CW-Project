@@ -10,16 +10,19 @@ import {
   ArrowLeftOnRectangleIcon,
   Bars3Icon,
   XMarkIcon,
-  ChartBarIcon
+  ChartBarIcon,
+  UserGroupIcon
 } from "@heroicons/react/24/outline";
 import { Typography, IconButton } from "../lib/mt-components";
+import logo from "../assets/logo.png";
 
 const NAVIGATION = [
   { name: "Dashboard", href: "/admin/dashboard", icon: Squares2X2Icon },
   { name: "Staff Directory", href: "/admin/staff", icon: UsersIcon },
+  { name: "Resident Directory", href: "/admin/residents", icon: UserGroupIcon },
   { name: "Complaints", href: "/admin/complaints", icon: ChatBubbleLeftEllipsisIcon },
-  { name: "Sustainability Reports", href: "#", icon: ChartBarIcon },
-  { name: "Settings", href: "#", icon: Cog6ToothIcon },
+  // { name: "Sustainability Reports", href: "#", icon: ChartBarIcon },
+  // { name: "Settings", href: "#", icon: Cog6ToothIcon },
 ];
 
 export function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -42,7 +45,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
     <div className="flex h-screen bg-[#e6e9ef] overflow-hidden">
       {/* Mobile Sidebar Overlay */}
       {sidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 z-40 bg-black/50 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
@@ -50,9 +53,8 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
 
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-72 transform bg-[#e6e9ef] flex flex-col transition-transform duration-300 lg:static lg:translate-x-0 ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`fixed inset-y-0 left-0 z-50 w-72 transform bg-[#e6e9ef] flex flex-col transition-transform duration-300 lg:static lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
         style={{
           boxShadow: "16px 16px 32px #c4c7cc, -16px -16px 32px #ffffff"
         }}
@@ -60,10 +62,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
         <div className="flex items-center justify-between px-6 pt-8 pb-4">
           <div>
             <Link to="/admin/dashboard" className="flex items-center gap-2">
-              <div className="w-6 h-6 bg-[#629955] [clip-path:polygon(50%_0%,0%_100%,100%_100%)]"></div>
-              <Typography variant="h5" color="blue-gray" className="font-bold text-xl tracking-tight">
-                EcoCycle
-              </Typography>
+              <img src={logo} alt="Agile CW Logo" className="h-10 w-auto object-contain" />
             </Link>
             <Typography variant="small" color="gray" className="mt-2 font-medium">
               system administrator
@@ -81,11 +80,10 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
               <Link
                 key={item.name}
                 to={item.href}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
-                  isActive
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${isActive
                     ? "bg-[#6cf3b7] text-black shadow-[4px_4px_10px_#c4c7cc,-4px_-4px_10px_#ffffff]"
                     : "text-gray-600 hover:bg-[#d9dce1]"
-                }`}
+                  }`}
               >
                 <item.icon className={`h-5 w-5 ${isActive ? "text-black" : "text-gray-500"}`} />
                 <span className="font-medium">{item.name}</span>
@@ -113,7 +111,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
             <IconButton variant="text" color="blue-gray" className="lg:hidden" onClick={() => setSidebarOpen(true)}>
               <Bars3Icon className="h-6 w-6" />
             </IconButton>
-            
+
             {/* Conditional Title or Search Bar */}
             <div className="hidden md:flex flex-1 items-center">
               {location.pathname.includes('/admin/staff') && (
@@ -182,26 +180,26 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
       {showLogoutDialog && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#e6e9ef]/60 backdrop-blur-md">
           <div className="bg-[#e6e9ef] p-8 rounded-3xl shadow-[20px_20px_40px_#c4c7cc,-20px_-20px_40px_#ffffff] w-[90%] max-w-sm border border-white/50">
-             <Typography variant="h5" color="blue-gray" className="font-bold mb-3 text-center">
-               Logout Confirmation
-             </Typography>
-             <Typography className="text-sm font-medium text-gray-600 mb-8 text-center">
-               Are you sure you want to log out of your session?
-             </Typography>
-             <div className="flex justify-center gap-6">
-               <button 
-                 onClick={() => setShowLogoutDialog(false)} 
-                 className="px-6 py-2.5 rounded-xl font-bold text-sm text-gray-700 bg-[#e6e9ef] shadow-[6px_6px_12px_#c4c7cc,-6px_-6px_12px_#ffffff] hover:shadow-[inset_2px_2px_5px_#c4c7cc,inset_-2px_-2px_5px_#ffffff] transition-shadow duration-300"
-               >
-                 Cancel
-               </button>
-               <button 
-                 onClick={handleConfirmLogout} 
-                 className="px-6 py-2.5 rounded-xl font-bold text-sm text-red-500 bg-[#ffd9d9] shadow-[6px_6px_12px_#c4c7cc,-6px_-6px_12px_#ffffff] hover:shadow-[inset_2px_2px_5px_#c4c7cc,inset_-2px_-2px_5px_#ffffff] transition-shadow duration-300"
-               >
-                 Logout
-               </button>
-             </div>
+            <Typography variant="h5" color="blue-gray" className="font-bold mb-3 text-center">
+              Logout Confirmation
+            </Typography>
+            <Typography className="text-sm font-medium text-gray-600 mb-8 text-center">
+              Are you sure you want to log out of your session?
+            </Typography>
+            <div className="flex justify-center gap-6">
+              <button
+                onClick={() => setShowLogoutDialog(false)}
+                className="px-6 py-2.5 rounded-xl font-bold text-sm text-gray-700 bg-[#e6e9ef] shadow-[6px_6px_12px_#c4c7cc,-6px_-6px_12px_#ffffff] hover:shadow-[inset_2px_2px_5px_#c4c7cc,inset_-2px_-2px_5px_#ffffff] transition-shadow duration-300"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmLogout}
+                className="px-6 py-2.5 rounded-xl font-bold text-sm text-red-500 bg-[#ffd9d9] shadow-[6px_6px_12px_#c4c7cc,-6px_-6px_12px_#ffffff] hover:shadow-[inset_2px_2px_5px_#c4c7cc,inset_-2px_-2px_5px_#ffffff] transition-shadow duration-300"
+              >
+                Logout
+              </button>
+            </div>
           </div>
         </div>
       )}

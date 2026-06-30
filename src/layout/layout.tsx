@@ -28,7 +28,7 @@ export const Layout = ({ children }: LayoutProps) => {
       <footer className="fixed bottom-0 left-0 right-0 z-40 border-t border-blue-gray-100 bg-white py-3 px-4 sm:px-8 text-sm text-blue-gray-600">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
           <p className="font-medium text-xs">
-            EcoCycle &nbsp;|&nbsp; &copy; {currentYear} EcoCycle Waste Management. All rights reserved.
+            Clean Lanka &nbsp;|&nbsp; &copy; {currentYear} Clean Lanka Waste Management. All rights reserved.
           </p>
           <nav className="flex items-center gap-4 text-xs">
             <a href="#" className="hover:text-blue-gray-900">Privacy Policy</a>
