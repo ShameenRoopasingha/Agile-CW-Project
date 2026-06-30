@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
-import { ArrowPathIcon } from "@heroicons/react/24/solid";
+import logo from "../assets/logo.png";
 
 // ── Shared modules ─────────────────────────────────────────────────────
 import {
@@ -51,14 +51,13 @@ export const Navbar = () => {
     <NavbarBase className="mx-auto max-w-full rounded-none px-4 py-2 lg:px-8 lg:py-3 shadow-sm fixed top-0 left-0 right-0 z-50 bg-white">
       <div className="container mx-auto flex items-center justify-between text-blue-gray-900">
         {/* ── Brand: icon + name ── */}
-        <Typography
-          as="a"
-          href="#"
-          className="mr-4 flex items-center gap-2 cursor-pointer py-1.5 font-semibold text-lg"
+        <Link
+          to="/"
+          className="mr-4 flex items-center gap-2.5 cursor-pointer py-1.5 font-bold text-xl tracking-tight text-[#003829] hover:opacity-90 transition-opacity"
         >
-          <ArrowPathIcon className="h-5 w-5 text-[#003829]" />
-          EcoCycle Citizen Portal
-        </Typography>
+          <img src={logo} alt="Clean Lanka Logo" className="h-9 w-auto object-contain" />
+          Clean Lanka
+        </Link>
 
         {/* ── Desktop: nav links + Login grouped on the right ── */}
         <div className="hidden lg:flex items-center gap-8">

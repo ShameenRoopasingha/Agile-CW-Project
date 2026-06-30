@@ -89,55 +89,104 @@ export function DailyRoute() {
           <Card className="bg-[#e6e9ef] shadow-[8px_8px_16px_#c4c7cc,-8px_-8px_16px_#ffffff] rounded-2xl border-none h-full min-h-[350px] sm:min-h-[450px]">
             <CardBody className="p-0 h-full flex flex-col">
               {/* Map visual */}
-              <div className="flex-1 relative bg-gradient-to-br from-[#e8edf3] to-[#dde2e8] rounded-t-2xl overflow-hidden">
-                {/* Decorative grid lines */}
-                <div className="absolute inset-0 opacity-[0.06]" style={{
-                  backgroundImage: "linear-gradient(#9aa3af 1px, transparent 1px), linear-gradient(90deg, #9aa3af 1px, transparent 1px)",
-                  backgroundSize: "40px 40px"
-                }}></div>
+              <div className="flex-1 relative bg-[#e8edf3] rounded-t-2xl overflow-hidden">
+                {/* Decorative Grid / Satellite texture approximation */}
+                <div 
+                  className="absolute inset-0 opacity-[0.15]" 
+                  style={{
+                    backgroundImage: "radial-gradient(#4b5563 1px, transparent 1px)",
+                    backgroundSize: "32px 32px"
+                  }}
+                ></div>
 
-                {/* Route path visualization */}
-                <svg className="absolute inset-0 w-full h-full" viewBox="0 0 600 400" fill="none" preserveAspectRatio="xMidYMid slice">
-                  {/* Route line */}
+                {/* Simulated City Roads (Background layer) */}
+                <svg className="absolute inset-0 w-full h-full" viewBox="0 0 800 600" preserveAspectRatio="xMidYMid slice">
+                  {/* Water / Parks */}
+                  <path d="M 600 0 L 800 0 L 800 600 L 750 600 Q 700 300 600 0" fill="#d2e0eb" opacity="0.6"/>
+                  <path d="M 0 400 Q 150 450 300 600 L 0 600 Z" fill="#dcedd9" opacity="0.5"/>
+                  
+                  {/* Roads */}
+                  <g stroke="#ffffff" strokeWidth="4" opacity="0.8" fill="none" strokeLinecap="round">
+                    <path d="M -50 100 L 850 150" />
+                    <path d="M -50 350 L 850 300" />
+                    <path d="M 200 -50 L 250 650" />
+                    <path d="M 500 -50 L 450 650" />
+                    <path d="M 100 100 L 150 350" />
+                    <path d="M 200 200 L 500 220" />
+                    <path d="M 400 320 L 450 550" />
+                  </g>
+                  <g stroke="#ffffff" strokeWidth="2" opacity="0.5" fill="none" strokeLinecap="round">
+                    <path d="M -50 200 L 200 220" />
+                    <path d="M -50 250 L 200 260" />
+                    <path d="M 250 400 L 450 380" />
+                    <path d="M 500 450 L 850 400" />
+                  </g>
+
+                  {/* The Actual Garbage Truck Route Line (Glowing Green) */}
                   <path
-                    d="M 80 350 C 120 280, 180 250, 200 200 S 280 120, 350 150 S 420 200, 480 120 S 540 80, 560 60"
-                    stroke="#629955"
-                    strokeWidth="3"
-                    strokeDasharray="8 4"
+                    d="M 100 100 L 200 120 L 250 260 L 450 240 L 500 450 L 700 420"
+                    stroke="#1a5c2e"
+                    strokeWidth="8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
                     fill="none"
-                    opacity="0.7"
+                    opacity="0.3"
                   />
-                  {/* Completed stops */}
-                  <circle cx="80" cy="350" r="8" fill="#629955" opacity="0.8" />
-                  <circle cx="200" cy="200" r="8" fill="#629955" opacity="0.8" />
-                  <circle cx="350" cy="150" r="8" fill="#629955" opacity="0.8" />
-                  {/* Current stop — pulsing */}
-                  <circle cx="480" cy="120" r="12" fill="#629955" opacity="0.2">
-                    <animate attributeName="r" values="12;18;12" dur="2s" repeatCount="indefinite" />
+                  <path
+                    d="M 100 100 L 200 120 L 250 260 L 450 240 L 500 450 L 700 420"
+                    stroke="#4ade80"
+                    strokeWidth="4"
+                    strokeDasharray="12 12"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    fill="none"
+                    className="animate-[dash_3s_linear_infinite]"
+                  />
+
+                  {/* Route Stops / Nodes */}
+                  {/* Completed */}
+                  <circle cx="100" cy="100" r="6" fill="#1a5c2e" />
+                  <circle cx="200" cy="120" r="6" fill="#1a5c2e" />
+                  <circle cx="250" cy="260" r="6" fill="#1a5c2e" />
+                  
+                  {/* Upcoming */}
+                  <circle cx="500" cy="450" r="5" fill="#a0aec0" />
+                  <circle cx="700" cy="420" r="5" fill="#a0aec0" />
+                  
+                  {/* Current Stop Marker Area (Pulsing) */}
+                  <circle cx="450" cy="240" r="14" fill="#1a5c2e" opacity="0.2">
+                    <animate attributeName="r" values="14;24;14" dur="2s" repeatCount="indefinite" />
                     <animate attributeName="opacity" values="0.3;0.1;0.3" dur="2s" repeatCount="indefinite" />
                   </circle>
-                  <circle cx="480" cy="120" r="7" fill="#629955" />
-                  {/* Upcoming stops */}
-                  <circle cx="560" cy="60" r="6" fill="#c4c7cc" />
+                  <circle cx="450" cy="240" r="6" fill="#1a5c2e" />
                 </svg>
 
                 {/* Area labels */}
-                <div className="absolute top-4 left-4 px-3 py-1.5 rounded-lg bg-white/80 backdrop-blur-sm shadow-sm">
-                  <Typography className="text-xs font-semibold text-gray-700">Colombo District</Typography>
+                <div className="absolute top-4 left-4 px-3 py-1.5 rounded-lg bg-white/90 backdrop-blur-sm shadow-sm border border-gray-100">
+                  <Typography className="text-xs font-bold text-gray-700 flex items-center gap-1.5">
+                    <MapPinIcon className="w-3.5 h-3.5 text-[#1a5c2e]" />
+                    Colombo District
+                  </Typography>
                 </div>
 
-                {/* Truck icon at current position */}
-                <div className="absolute" style={{ left: "76%", top: "25%", transform: "translate(-50%, -50%)" }}>
-                  <div className="w-10 h-10 rounded-full bg-[#629955] shadow-lg flex items-center justify-center animate-bounce" style={{ animationDuration: "3s" }}>
-                    <TruckIcon className="w-5 h-5 text-white" />
+                {/* Truck icon at current position overlay (HTML based for shadow/styling) */}
+                <div className="absolute top-[40%] left-[56%] transform -translate-x-1/2 -translate-y-1/2">
+                  <div className="relative">
+                    <div className="w-12 h-12 rounded-full bg-[#1a5c2e]/20 animate-ping absolute -inset-2"></div>
+                    <div className="w-8 h-8 rounded-lg bg-black text-white flex items-center justify-center shadow-[0_8px_16px_rgba(0,0,0,0.3)] transform -rotate-12 transition-transform hover:scale-110">
+                      <TruckIcon className="w-5 h-5" />
+                    </div>
                   </div>
                 </div>
 
                 {/* Scale + controls */}
-                <div className="absolute bottom-4 right-4 flex flex-col gap-1.5">
-                  <button className="w-8 h-8 rounded-lg bg-white/90 shadow-md flex items-center justify-center text-gray-600 hover:bg-white transition-colors text-lg font-bold">⊕</button>
-                  <button className="w-8 h-8 rounded-lg bg-white/90 shadow-md flex items-center justify-center text-gray-600 hover:bg-white transition-colors text-lg font-bold">+</button>
-                  <button className="w-8 h-8 rounded-lg bg-white/90 shadow-md flex items-center justify-center text-gray-600 hover:bg-white transition-colors text-lg font-bold">−</button>
+                <div className="absolute bottom-4 right-4 flex flex-col gap-2">
+                  <button className="w-10 h-10 rounded-xl bg-white/95 backdrop-blur shadow-[4px_4px_10px_rgba(0,0,0,0.1)] flex items-center justify-center text-gray-600 hover:bg-gray-50 hover:text-[#1a5c2e] transition-all">
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                  </button>
+                  <button className="w-10 h-10 rounded-xl bg-white/95 backdrop-blur shadow-[4px_4px_10px_rgba(0,0,0,0.1)] flex items-center justify-center text-gray-600 hover:bg-gray-50 hover:text-[#1a5c2e] transition-all">
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" /></svg>
+                  </button>
                 </div>
               </div>
 

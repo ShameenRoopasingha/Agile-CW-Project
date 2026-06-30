@@ -17,6 +17,7 @@ import {
   MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
 import { Typography, IconButton } from "../lib/mt-components";
+import logo from "../assets/logo.png";
 
 const NAVIGATION = [
   { name: "Calendar", href: "/citizen/dashboard", icon: CalendarDaysIcon },
@@ -77,10 +78,7 @@ export function CitizenLayout({ children }: { children: React.ReactNode }) {
         <div className="flex items-center justify-between px-6 pt-8 pb-4">
           <div>
             <Link to="/citizen/dashboard" className="flex items-center gap-2">
-              <div className="w-6 h-6 bg-[#629955] [clip-path:polygon(50%_0%,0%_100%,100%_100%)]"></div>
-              <Typography variant="h5" color="blue-gray" className="font-bold text-xl tracking-tight">
-                EcoCycle
-              </Typography>
+              <img src={logo} alt="Agile CW Logo" className="h-10 w-auto object-contain" />
             </Link>
             <Typography variant="small" color="blue-gray" className="mt-3 font-bold text-sm">
               Resident Portal

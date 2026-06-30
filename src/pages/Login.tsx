@@ -9,7 +9,6 @@ import {
   EnvelopeIcon,
 } from "@heroicons/react/24/outline";
 
-// ── Shared modules ─────────────────────────────────────────────────────
 import {
   Typography,
   Input,
@@ -19,6 +18,7 @@ import {
   Card,
   CardBody,
 } from "../lib/mt-components";
+import logo from "../assets/logo.png";
 import { BRAND } from "../constants";
 import illustration from "../assets/illustration.png";
 import { loginCitizen } from "../lib/api";
@@ -84,14 +84,15 @@ export function Login() {
         className="hidden lg:flex fixed left-0 top-16 bottom-0 w-1/2 flex-col items-center justify-center text-center px-12 py-12 overflow-hidden z-10"
       >
         <div className="max-w-md flex-shrink-0 flex flex-col items-center justify-center mt-10">
+          <div className="flex justify-center mb-6">
+            <img src={logo} alt="Agile CW Logo" className="h-16 w-auto drop-shadow-md" />
+          </div>
           <Typography
-            variant="h3"
-            color="blue-gray"
+            variant="h2"
+            color="white"
             className="mb-4 font-bold tracking-tight text-3xl leading-tight text-center"
           >
-            Welcome Back to
-            <br />
-            EcoCycle.
+            Welcome Back
           </Typography>
 
           <Typography color="gray" className="mb-8 font-normal text-base text-center leading-relaxed">
@@ -111,8 +112,8 @@ export function Login() {
       <section className="w-full lg:w-1/2 lg:ml-auto flex flex-col items-center justify-center px-4 py-8 sm:py-12 sm:px-8 md:px-12 lg:px-20">
         <Card className="w-full max-w-[440px] bg-[#e6e9ef] shadow-[16px_16px_32px_#c4c7cc,-16px_-16px_32px_#ffffff] rounded-2xl sm:rounded-3xl border-none">
           <CardBody className="p-6 sm:p-12">
-            <Typography variant="h4" color="blue-gray" className="mb-2 font-bold text-2xl sm:text-3xl">
-              Welcome back to EcoCycle
+            <Typography variant="h4" color="blue-gray" className="mb-2 font-bold text-2xl sm:text-3xl text-center">
+              Welcome back
             </Typography>
             <Typography color="gray" className="mb-8 font-normal text-base">
               Sign in to access your waste management portal

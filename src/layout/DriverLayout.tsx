@@ -12,6 +12,7 @@ import {
   UserCircleIcon,
 } from "@heroicons/react/24/outline";
 import { Typography, IconButton } from "../lib/mt-components";
+import logo from "../assets/logo.png";
 
 const NAVIGATION = [
   { name: "Daily Route", href: "/driver/daily-route", icon: MapIcon },
@@ -61,11 +62,8 @@ export function DriverLayout({ children }: { children: React.ReactNode }) {
       >
         {/* Brand */}
         <div className="flex items-center justify-between px-5 pt-6 pb-3">
-          <Link to="/driver/daily-route" className="flex items-center gap-2">
-            <div className="w-5 h-5 bg-[#629955] [clip-path:polygon(50%_0%,0%_100%,100%_100%)]"></div>
-            <Typography variant="h6" color="blue-gray" className="font-extrabold text-base tracking-tight" style={{ color: "#1a5c2e" }}>
-              EcoCollect Smart
-            </Typography>
+          <Link to="/driver/dashboard" className="flex items-center gap-2">
+            <img src={logo} alt="Agile CW Logo" className="h-10 w-auto object-contain" />
           </Link>
           <IconButton variant="text" color="blue-gray" className="lg:hidden" onClick={() => setSidebarOpen(false)}>
             <XMarkIcon className="h-5 w-5" />
