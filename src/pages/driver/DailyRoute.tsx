@@ -1,15 +1,14 @@
-import { useState } from "react";
-import { Typography, Card, CardBody, Button } from "../../lib/mt-components";
+import { useState, useEffect, useRef, useMemo } from "react";
+import { Typography, Card, CardBody } from "../../lib/mt-components";
 import {
   MapPinIcon,
   ExclamationTriangleIcon,
   FlagIcon,
   ChevronRightIcon,
   CheckCircleIcon,
-  ClockIcon,
   TruckIcon,
 } from "@heroicons/react/24/outline";
-import { MapPinIcon as MapPinSolidIcon } from "@heroicons/react/24/solid";
+import { useJsApiLoader, GoogleMap, MarkerF } from "@react-google-maps/api";
 
 /* ─── Types ────────────────────────────────────────────────────────── */
 
@@ -34,14 +33,279 @@ const ROUTE_STOPS: RouteStop[] = [
   { id: "S-007", address: "67 Havelock Road", area: "Colombo 06", time: "08:50", status: "upcoming", wasteType: "Organic" },
 ];
 
+const containerStyle = {
+  width: "100%",
+  height: "100%",
+};
+
+const LIGHT_MAP_STYLE = [
+  { elementType: "geometry", stylers: [{ color: "#f8f9fa" }] },
+  { elementType: "labels.icon", stylers: [{ visibility: "on" }, { opacity: 50 }] },
+  { elementType: "labels.text.fill", stylers: [{ color: "#525252" }] },
+  { elementType: "labels.text.stroke", stylers: [{ color: "#f8f9fa" }] },
+  {
+    featureType: "administrative.land_parcel",
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#bdbdbd" }]
+  },
+  {
+    featureType: "poi",
+    elementType: "geometry",
+    stylers: [{ color: "#f1f3f4" }]
+  },
+  {
+    featureType: "poi",
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#5f6368" }]
+  },
+  {
+    featureType: "poi.park",
+    elementType: "geometry",
+    stylers: [{ color: "#e8f0fe" }]
+  },
+  {
+    featureType: "poi.park",
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#3c4043" }]
+  },
+  {
+    featureType: "road",
+    elementType: "geometry",
+    stylers: [{ color: "#ffffff" }]
+  },
+  {
+    featureType: "road.arterial",
+    elementType: "geometry.fill",
+    stylers: [{ color: "#ffffff" }]
+  },
+  {
+    featureType: "road.highway",
+    elementType: "geometry.fill",
+    stylers: [{ color: "#feeeb3" }]
+  },
+  {
+    featureType: "road.highway",
+    elementType: "geometry.stroke",
+    stylers: [{ color: "#fdd663" }]
+  },
+  {
+    featureType: "road.highway.controlled_access",
+    elementType: "geometry.fill",
+    stylers: [{ color: "#fdc145" }]
+  },
+  {
+    featureType: "road.local",
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#70757a" }]
+  },
+  {
+    featureType: "transit.line",
+    elementType: "geometry",
+    stylers: [{ color: "#e8eaed" }]
+  },
+  {
+    featureType: "transit.station",
+    elementType: "geometry",
+    stylers: [{ color: "#e8eaed" }]
+  },
+  {
+    featureType: "water",
+    elementType: "geometry",
+    stylers: [{ color: "#d2e5fc" }]
+  },
+  {
+    featureType: "water",
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#70757a" }]
+  }
+];
+
+const DARK_MAP_STYLE = [
+  { elementType: "geometry", stylers: [{ color: "#242f3e" }] },
+  { elementType: "labels.text.stroke", stylers: [{ color: "#242f3e" }] },
+  { elementType: "labels.text.fill", stylers: [{ color: "#746855" }] },
+  {
+    featureType: "administrative.locality",
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#d59563" }]
+  },
+  {
+    featureType: "poi",
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#d59563" }]
+  },
+  {
+    featureType: "poi.park",
+    elementType: "geometry",
+    stylers: [{ color: "#263c3f" }]
+  },
+  {
+    featureType: "poi.park",
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#6b9a76" }]
+  },
+  {
+    featureType: "road",
+    elementType: "geometry",
+    stylers: [{ color: "#38414e" }]
+  },
+  {
+    featureType: "road",
+    elementType: "geometry.stroke",
+    stylers: [{ color: "#212a37" }]
+  },
+  {
+    featureType: "road",
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#9ca5b3" }]
+  },
+  {
+    featureType: "road.highway",
+    elementType: "geometry",
+    stylers: [{ color: "#746855" }]
+  },
+  {
+    featureType: "road.highway",
+    elementType: "geometry.stroke",
+    stylers: [{ color: "#1f2835" }]
+  },
+  {
+    featureType: "road.highway",
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#f3d19c" }]
+  },
+  {
+    featureType: "transit",
+    elementType: "geometry",
+    stylers: [{ color: "#2f3948" }]
+  },
+  {
+    featureType: "transit.station",
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#d59563" }]
+  },
+  {
+    featureType: "water",
+    elementType: "geometry",
+    stylers: [{ color: "#17263c" }]
+  },
+  {
+    featureType: "water",
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#515c6d" }]
+  },
+  {
+    featureType: "water",
+    elementType: "labels.text.stroke",
+    stylers: [{ color: "#17263c" }]
+  }
+];
+
 /* ─── Component ────────────────────────────────────────────────────── */
 
 export function DailyRoute() {
   const [stops] = useState(ROUTE_STOPS);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [currentLocation, setCurrentLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const mapRef = useRef<google.maps.Map | null>(null);
+
+  const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+  const { isLoaded, loadError } = useJsApiLoader({
+    id: "google-map-script",
+    googleMapsApiKey: apiKey || "",
+  });
 
   const completedCount = stops.filter((s) => s.status === "completed").length;
   const totalStops = stops.length;
   const currentStop = stops.find((s) => s.status === "current");
+
+  // Geolocation tracking
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setCurrentLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          });
+        },
+        (error) => {
+          console.error("Error getting location: ", error);
+          // Default to Colombo, Sri Lanka
+          setCurrentLocation({ lat: 6.9271, lng: 79.8612 });
+        },
+        { enableHighAccuracy: true }
+      );
+
+      const watchId = navigator.geolocation.watchPosition(
+        (position) => {
+          setCurrentLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          });
+        },
+        (error) => {
+          console.error("Error watching location: ", error);
+        },
+        { enableHighAccuracy: true }
+      );
+
+      return () => navigator.geolocation.clearWatch(watchId);
+    } else {
+      setCurrentLocation({ lat: 6.9271, lng: 79.8612 });
+    }
+  }, []);
+
+  const mapOptions = useMemo(() => ({
+    styles: isDarkMode ? DARK_MAP_STYLE : LIGHT_MAP_STYLE,
+    disableDefaultUI: true,
+    zoomControl: false,
+    mapTypeControl: false,
+    scaleControl: true,
+    streetViewControl: false,
+    rotateControl: false,
+    fullscreenControl: false,
+  }), [isDarkMode]);
+
+  const truckIcon = useMemo(() => {
+    if (!window.google) return undefined;
+    return {
+      path: "M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4z M6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z M18 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z",
+      fillColor: "#22c55e", // premium green
+      fillOpacity: 1,
+      strokeWeight: 1.5,
+      strokeColor: "#166534",
+      scale: 1.5,
+      anchor: new window.google.maps.Point(12, 12),
+    };
+  }, [isLoaded]);
+
+  const onMapLoad = (map: google.maps.Map) => {
+    mapRef.current = map;
+  };
+
+  const onMapUnmount = () => {
+    mapRef.current = null;
+  };
+
+  const handleZoomIn = () => {
+    if (mapRef.current) {
+      mapRef.current.setZoom((mapRef.current.getZoom() || 15) + 1);
+    }
+  };
+
+  const handleZoomOut = () => {
+    if (mapRef.current) {
+      mapRef.current.setZoom((mapRef.current.getZoom() || 15) - 1);
+    }
+  };
+
+  const handleRecenter = () => {
+    if (mapRef.current && currentLocation) {
+      mapRef.current.panTo(currentLocation);
+      mapRef.current.setZoom(15);
+    }
+  };
 
   return (
     <div className="space-y-4 sm:space-y-5">
@@ -89,105 +353,165 @@ export function DailyRoute() {
           <Card className="bg-[#e6e9ef] shadow-[8px_8px_16px_#c4c7cc,-8px_-8px_16px_#ffffff] rounded-2xl border-none h-full min-h-[350px] sm:min-h-[450px]">
             <CardBody className="p-0 h-full flex flex-col">
               {/* Map visual */}
-              <div className="flex-1 relative bg-[#e8edf3] rounded-t-2xl overflow-hidden">
-                {/* Decorative Grid / Satellite texture approximation */}
-                <div 
-                  className="absolute inset-0 opacity-[0.15]" 
-                  style={{
-                    backgroundImage: "radial-gradient(#4b5563 1px, transparent 1px)",
-                    backgroundSize: "32px 32px"
-                  }}
-                ></div>
+              <div className="flex-1 relative bg-[#e8edf3] rounded-t-2xl overflow-hidden min-h-[350px] sm:min-h-[450px]">
+                {(!apiKey || loadError) ? (
+                  // Fallback Mockup Map when API Key is missing or failed to load
+                  <>
+                    {/* Decorative Grid */}
+                    <div 
+                      className="absolute inset-0 opacity-[0.15]" 
+                      style={{
+                        backgroundImage: "radial-gradient(#4b5563 1px, transparent 1px)",
+                        backgroundSize: "32px 32px"
+                      }}
+                    ></div>
 
-                {/* Simulated City Roads (Background layer) */}
-                <svg className="absolute inset-0 w-full h-full" viewBox="0 0 800 600" preserveAspectRatio="xMidYMid slice">
-                  {/* Water / Parks */}
-                  <path d="M 600 0 L 800 0 L 800 600 L 750 600 Q 700 300 600 0" fill="#d2e0eb" opacity="0.6"/>
-                  <path d="M 0 400 Q 150 450 300 600 L 0 600 Z" fill="#dcedd9" opacity="0.5"/>
-                  
-                  {/* Roads */}
-                  <g stroke="#ffffff" strokeWidth="4" opacity="0.8" fill="none" strokeLinecap="round">
-                    <path d="M -50 100 L 850 150" />
-                    <path d="M -50 350 L 850 300" />
-                    <path d="M 200 -50 L 250 650" />
-                    <path d="M 500 -50 L 450 650" />
-                    <path d="M 100 100 L 150 350" />
-                    <path d="M 200 200 L 500 220" />
-                    <path d="M 400 320 L 450 550" />
-                  </g>
-                  <g stroke="#ffffff" strokeWidth="2" opacity="0.5" fill="none" strokeLinecap="round">
-                    <path d="M -50 200 L 200 220" />
-                    <path d="M -50 250 L 200 260" />
-                    <path d="M 250 400 L 450 380" />
-                    <path d="M 500 450 L 850 400" />
-                  </g>
+                    {/* Simulated City Roads */}
+                    <svg className="absolute inset-0 w-full h-full" viewBox="0 0 800 600" preserveAspectRatio="xMidYMid slice">
+                      <path d="M 600 0 L 800 0 L 800 600 L 750 600 Q 700 300 600 0" fill="#d2e0eb" opacity="0.6"/>
+                      <path d="M 0 400 Q 150 450 300 600 L 0 600 Z" fill="#dcedd9" opacity="0.5"/>
+                      
+                      <g stroke="#ffffff" strokeWidth="4" opacity="0.8" fill="none" strokeLinecap="round">
+                        <path d="M -50 100 L 850 150" />
+                        <path d="M -50 350 L 850 300" />
+                        <path d="M 200 -50 L 250 650" />
+                        <path d="M 500 -50 L 450 650" />
+                        <path d="M 100 100 L 150 350" />
+                        <path d="M 200 200 L 500 220" />
+                        <path d="M 400 320 L 450 550" />
+                      </g>
+                      
+                      <path
+                        d="M 100 100 L 200 120 L 250 260 L 450 240 L 500 450 L 700 420"
+                        stroke="#1a5c2e"
+                        strokeWidth="8"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        fill="none"
+                        opacity="0.3"
+                      />
+                      <path
+                        d="M 100 100 L 200 120 L 250 260 L 450 240 L 500 450 L 700 420"
+                        stroke="#4ade80"
+                        strokeWidth="4"
+                        strokeDasharray="12 12"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        fill="none"
+                      />
 
-                  {/* The Actual Garbage Truck Route Line (Glowing Green) */}
-                  <path
-                    d="M 100 100 L 200 120 L 250 260 L 450 240 L 500 450 L 700 420"
-                    stroke="#1a5c2e"
-                    strokeWidth="8"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    fill="none"
-                    opacity="0.3"
-                  />
-                  <path
-                    d="M 100 100 L 200 120 L 250 260 L 450 240 L 500 450 L 700 420"
-                    stroke="#4ade80"
-                    strokeWidth="4"
-                    strokeDasharray="12 12"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    fill="none"
-                    className="animate-[dash_3s_linear_infinite]"
-                  />
+                      <circle cx="100" cy="100" r="6" fill="#1a5c2e" />
+                      <circle cx="200" cy="120" r="6" fill="#1a5c2e" />
+                      <circle cx="250" cy="260" r="6" fill="#1a5c2e" />
+                      <circle cx="500" cy="450" r="5" fill="#a0aec0" />
+                      <circle cx="700" cy="420" r="5" fill="#a0aec0" />
+                      <circle cx="450" cy="240" r="14" fill="#1a5c2e" opacity="0.2" />
+                      <circle cx="450" cy="240" r="6" fill="#1a5c2e" />
+                    </svg>
 
-                  {/* Route Stops / Nodes */}
-                  {/* Completed */}
-                  <circle cx="100" cy="100" r="6" fill="#1a5c2e" />
-                  <circle cx="200" cy="120" r="6" fill="#1a5c2e" />
-                  <circle cx="250" cy="260" r="6" fill="#1a5c2e" />
-                  
-                  {/* Upcoming */}
-                  <circle cx="500" cy="450" r="5" fill="#a0aec0" />
-                  <circle cx="700" cy="420" r="5" fill="#a0aec0" />
-                  
-                  {/* Current Stop Marker Area (Pulsing) */}
-                  <circle cx="450" cy="240" r="14" fill="#1a5c2e" opacity="0.2">
-                    <animate attributeName="r" values="14;24;14" dur="2s" repeatCount="indefinite" />
-                    <animate attributeName="opacity" values="0.3;0.1;0.3" dur="2s" repeatCount="indefinite" />
-                  </circle>
-                  <circle cx="450" cy="240" r="6" fill="#1a5c2e" />
-                </svg>
-
-                {/* Area labels */}
-                <div className="absolute top-4 left-4 px-3 py-1.5 rounded-lg bg-white/90 backdrop-blur-sm shadow-sm border border-gray-100">
-                  <Typography className="text-xs font-bold text-gray-700 flex items-center gap-1.5">
-                    <MapPinIcon className="w-3.5 h-3.5 text-[#1a5c2e]" />
-                    Colombo District
-                  </Typography>
-                </div>
-
-                {/* Truck icon at current position overlay (HTML based for shadow/styling) */}
-                <div className="absolute top-[40%] left-[56%] transform -translate-x-1/2 -translate-y-1/2">
-                  <div className="relative">
-                    <div className="w-12 h-12 rounded-full bg-[#1a5c2e]/20 animate-ping absolute -inset-2"></div>
-                    <div className="w-8 h-8 rounded-lg bg-black text-white flex items-center justify-center shadow-[0_8px_16px_rgba(0,0,0,0.3)] transform -rotate-12 transition-transform hover:scale-110">
-                      <TruckIcon className="w-5 h-5" />
+                    {/* Area labels */}
+                    <div className="absolute top-4 left-4 px-3 py-1.5 rounded-lg bg-white/90 backdrop-blur-sm shadow-sm border border-gray-100 z-10 flex gap-2">
+                      <div className="flex items-center gap-1.5">
+                        <MapPinIcon className="w-3.5 h-3.5 text-[#1a5c2e]" />
+                        <Typography className="text-xs font-bold text-gray-700">Colombo District</Typography>
+                      </div>
+                      <div className="bg-amber-50 text-amber-700 px-2 py-0.5 rounded text-[10px] font-bold border border-amber-200 flex items-center">
+                        Mockup Map (Set VITE_GOOGLE_MAPS_API_KEY in .env)
+                      </div>
                     </div>
-                  </div>
-                </div>
 
-                {/* Scale + controls */}
-                <div className="absolute bottom-4 right-4 flex flex-col gap-2">
-                  <button className="w-10 h-10 rounded-xl bg-white/95 backdrop-blur shadow-[4px_4px_10px_rgba(0,0,0,0.1)] flex items-center justify-center text-gray-600 hover:bg-gray-50 hover:text-[#1a5c2e] transition-all">
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-                  </button>
-                  <button className="w-10 h-10 rounded-xl bg-white/95 backdrop-blur shadow-[4px_4px_10px_rgba(0,0,0,0.1)] flex items-center justify-center text-gray-600 hover:bg-gray-50 hover:text-[#1a5c2e] transition-all">
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" /></svg>
-                  </button>
-                </div>
+                    {/* Simulated Truck */}
+                    <div className="absolute top-[40%] left-[56%] transform -translate-x-1/2 -translate-y-1/2">
+                      <div className="relative">
+                        <div className="w-12 h-12 rounded-full bg-[#1a5c2e]/20 animate-ping absolute -inset-2"></div>
+                        <div className="w-8 h-8 rounded-lg bg-[#1a5c2e] text-white flex items-center justify-center shadow-[0_8px_16px_rgba(0,0,0,0.3)] transform -rotate-12">
+                          <TruckIcon className="w-5 h-5" />
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                ) : !isLoaded ? (
+                  // Map Loading State
+                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-100">
+                    <div className="w-12 h-12 rounded-full border-4 border-t-green-500 border-green-200 animate-spin mb-4"></div>
+                    <Typography className="text-sm font-semibold text-gray-500">Loading Map Services...</Typography>
+                  </div>
+                ) : (
+                  // Real Google Map
+                  <>
+                    <GoogleMap
+                      mapContainerStyle={containerStyle}
+                      center={currentLocation || { lat: 6.9271, lng: 79.8612 }}
+                      zoom={14}
+                      onLoad={onMapLoad}
+                      onUnmount={onMapUnmount}
+                      options={mapOptions}
+                    >
+                      {currentLocation && (
+                        <MarkerF
+                          position={currentLocation}
+                          icon={truckIcon}
+                          title="Your Location"
+                        />
+                      )}
+                    </GoogleMap>
+
+                    {/* Controls & Overlays */}
+                    <div className="absolute top-4 left-4 flex gap-2 z-10">
+                      <div className="px-3 py-1.5 rounded-lg bg-white/90 backdrop-blur-sm shadow-sm border border-gray-100 flex items-center gap-1.5">
+                        <MapPinIcon className="w-3.5 h-3.5 text-[#1a5c2e]" />
+                        <Typography className="text-xs font-bold text-gray-700">
+                          Colombo District
+                        </Typography>
+                      </div>
+
+                      <button 
+                        onClick={() => setIsDarkMode(!isDarkMode)} 
+                        className="p-2 rounded-lg bg-white/90 backdrop-blur-sm shadow-sm border border-gray-100 hover:bg-gray-50 text-gray-700 hover:text-[#1a5c2e] transition-all flex items-center justify-center cursor-pointer"
+                        title="Toggle Dark/Light Map Theme"
+                      >
+                        {isDarkMode ? (
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m0-12.728l.707.707m12.728 12.728l.707.707M12 8a4 4 0 100 8 4 4 0 000-8z" />
+                          </svg>
+                        ) : (
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                          </svg>
+                        )}
+                      </button>
+
+                      {currentLocation && (
+                        <button 
+                          onClick={handleRecenter} 
+                          className="p-2 rounded-lg bg-white/90 backdrop-blur-sm shadow-sm border border-gray-100 hover:bg-gray-50 text-gray-700 hover:text-[#1a5c2e] transition-all flex items-center justify-center cursor-pointer"
+                          title="Recenter to My Location"
+                        >
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Scale + Zoom controls */}
+                    <div className="absolute bottom-4 right-4 flex flex-col gap-2 z-10">
+                      <button 
+                        onClick={handleZoomIn}
+                        className="w-10 h-10 rounded-xl bg-white/95 backdrop-blur shadow-[4px_4px_10px_rgba(0,0,0,0.1)] flex items-center justify-center text-gray-600 hover:bg-gray-50 hover:text-[#1a5c2e] transition-all cursor-pointer font-bold text-lg"
+                      >
+                        +
+                      </button>
+                      <button 
+                        onClick={handleZoomOut}
+                        className="w-10 h-10 rounded-xl bg-white/95 backdrop-blur shadow-[4px_4px_10px_rgba(0,0,0,0.1)] flex items-center justify-center text-gray-600 hover:bg-gray-50 hover:text-[#1a5c2e] transition-all cursor-pointer font-bold text-lg"
+                      >
+                        -
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
 
               {/* Complete Route Button */}

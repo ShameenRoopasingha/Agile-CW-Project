@@ -12,6 +12,7 @@
   "dependencies": {
     "@heroicons/react": "^2.2.0",
     "@material-tailwind/react": "^2.1.10",
+    "@react-google-maps/api": "^2.20.8",
     "pdf-lib": "^1.17.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
@@ -20,6 +21,7 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@tailwindcss/postcss": "^4.3.1",
+    "@types/google.maps": "^3.65.2",
     "@types/node": "^24.12.3",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
