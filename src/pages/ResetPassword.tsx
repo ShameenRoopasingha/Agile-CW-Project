@@ -1,5 +1,5 @@
 import { useState, type FormEvent, useRef } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { 
   EnvelopeIcon, 
   ArrowRightIcon,
@@ -29,7 +29,7 @@ import { useAuth } from "../context/AuthContext";
 // ── Main component ─────────────────────────────────────────────────────
 
 export function ResetPassword() {
-  const navigate = useNavigate();
+
   const { login } = useAuth();
 
   const [step, setStep] = useState(1);

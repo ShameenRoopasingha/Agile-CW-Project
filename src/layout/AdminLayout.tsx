@@ -6,11 +6,9 @@ import {
   Squares2X2Icon,
   UsersIcon,
   ChatBubbleLeftEllipsisIcon,
-  Cog6ToothIcon,
   ArrowLeftOnRectangleIcon,
   Bars3Icon,
   XMarkIcon,
-  ChartBarIcon,
   UserGroupIcon
 } from "@heroicons/react/24/outline";
 import { Typography, IconButton } from "../lib/mt-components";

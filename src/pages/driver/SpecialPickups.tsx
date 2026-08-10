@@ -7,8 +7,7 @@ import {
   PlayIcon,
   MapIcon,
   ExclamationTriangleIcon,
-  EyeIcon,
-  FunnelIcon,
+
 } from "@heroicons/react/24/outline";
 
 /* ─── Types ────────────────────────────────────────────────────────── */

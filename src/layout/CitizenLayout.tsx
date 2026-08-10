@@ -6,21 +6,21 @@ import {
   CalendarDaysIcon,
   TruckIcon,
   ArchiveBoxIcon,
-  CreditCardIcon,
   ChatBubbleLeftEllipsisIcon,
-  ExclamationTriangleIcon,
   QuestionMarkCircleIcon,
   ArrowLeftOnRectangleIcon,
   Bars3Icon,
   XMarkIcon,
   Cog6ToothIcon,
   MagnifyingGlassIcon,
+  MapPinIcon,
 } from "@heroicons/react/24/outline";
 import { Typography, IconButton } from "../lib/mt-components";
 import logo from "../assets/logo.png";
 
 const NAVIGATION = [
   { name: "Calendar", href: "/citizen/dashboard", icon: CalendarDaysIcon },
+  { name: "Add Location", href: "/citizen/add-location", icon: MapPinIcon },
   { name: "Track Garbage Truck", href: "/citizen/schedule", icon: TruckIcon },
   { name: "Bulky Waste", href: "/citizen/bulky-waste", icon: ArchiveBoxIcon },
   // { name: "Payments", href: "/citizen/profile", icon: CreditCardIcon },
@@ -45,17 +45,9 @@ export function CitizenLayout({ children }: { children: React.ReactNode }) {
     navigate("/login");
   };
 
-  // Derive page title from current route
-  const getPageInfo = () => {
-    if (location.pathname.includes("/citizen/dashboard")) return { title: "Dashboard", subtitle: "Your waste management overview" };
-    if (location.pathname.includes("/citizen/schedule")) return { title: "Collection Schedule", subtitle: "Upcoming waste collection dates for your area" };
-    if (location.pathname.includes("/citizen/complaints")) return { title: "My Complaints", subtitle: "Track and submit waste-related complaints" };
-    if (location.pathname.includes("/citizen/bulky-waste")) return { title: "Bulky Waste Request", subtitle: "Schedule and track bulky waste pickups" };
-    if (location.pathname.includes("/citizen/profile")) return { title: "My Profile", subtitle: "Manage your account details" };
-    return { title: "Dashboard", subtitle: "" };
-  };
 
-  const pageInfo = getPageInfo();
+
+  
 
   return (
     <div className="flex h-screen bg-[#e6e9ef] overflow-hidden">

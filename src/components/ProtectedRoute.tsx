@@ -32,6 +32,7 @@ export function ProtectedRoute({ allowedRole }: ProtectedRouteProps) {
     if (role === "citizen") return <Navigate to="/citizen/dashboard" replace />;
     if (role === "admin") return <Navigate to="/admin/dashboard" replace />;
     if (role === "driver") return <Navigate to="/driver/daily-route" replace />;
+    if (role === "fleet_manager") return <Navigate to="/fleet/dashboard" replace />;
     
     // Fallback if role is completely unknown
     return <Navigate to="/login" replace />;

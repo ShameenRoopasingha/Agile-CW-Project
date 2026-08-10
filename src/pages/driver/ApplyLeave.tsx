@@ -1,18 +1,16 @@
-import { useState, type FormEvent } from "react";
-import { Typography, Card, CardBody, Select, Option, Input, Button } from "../../lib/mt-components";
+import { useState, useEffect, type FormEvent } from "react";
+import { Typography, Card, CardBody, Select, Option } from "../../lib/mt-components";
 import {
   CalendarDaysIcon,
   PaperAirplaneIcon,
   CloudArrowUpIcon,
   FunnelIcon,
-  XCircleIcon,
-  EyeIcon,
-  ChatBubbleLeftIcon,
   InformationCircleIcon,
   CheckCircleIcon,
   ClockIcon,
   ExclamationCircleIcon,
 } from "@heroicons/react/24/outline";
+import { applyLeave, getLeaveHistory } from "../../lib/api";
 
 /* ─── Types ────────────────────────────────────────────────────────── */
 
@@ -30,51 +28,6 @@ interface LeaveRecord {
   status: LeaveStatus;
 }
 
-/* ─── Static Data ──────────────────────────────────────────────────── */
-
-const LEAVE_HISTORY: LeaveRecord[] = [
-  {
-    id: "L-001",
-    type: "casual",
-    label: "Casual Leave",
-    startDate: "Nov 02",
-    endDate: "Nov 04",
-    totalDays: "3 days total",
-    appliedDate: "Oct 24, 2024",
-    status: "pending",
-  },
-  {
-    id: "L-002",
-    type: "annual",
-    label: "Annual Leave",
-    startDate: "Sep 15",
-    endDate: "Sep 22",
-    totalDays: "8 days total",
-    appliedDate: "Sep 01, 2024",
-    status: "approved",
-  },
-  {
-    id: "L-003",
-    type: "emergency",
-    label: "Emergency Leave",
-    startDate: "Aug 12",
-    endDate: "Aug 12",
-    totalDays: "1 day total",
-    appliedDate: "Aug 11, 2024",
-    status: "rejected",
-  },
-  {
-    id: "L-004",
-    type: "sick",
-    label: "Sick Leave",
-    startDate: "Jul 04",
-    endDate: "Jul 05",
-    totalDays: "2 days total",
-    appliedDate: "Jul 04, 2024",
-    status: "approved",
-  },
-];
-
 const TYPE_DOT_COLORS: Record<LeaveType, string> = {
   casual: "bg-blue-500",
   annual: "bg-green-500",
@@ -88,6 +41,36 @@ const STATUS_BADGE: Record<LeaveStatus, { bg: string; text: string; icon: typeof
   rejected: { bg: "bg-red-50", text: "text-red-600", icon: ExclamationCircleIcon, label: "Rejected" },
 };
 
+/* ─── Helper Functions ────────────────────────────────────────────────── */
+
+const calculateDays = (start: string, end: string) => {
+  const d1 = new Date(start);
+  const d2 = new Date(end);
+  if (isNaN(d1.getTime()) || isNaN(d2.getTime())) return 0;
+  const diff = Math.abs(d2.getTime() - d1.getTime());
+  return Math.ceil(diff / (1000 * 60 * 60 * 24)) + 1;
+};
+
+const formatDateShort = (dateString: string) => {
+  if (!dateString) return "";
+  const d = new Date(dateString);
+  return d.toLocaleDateString("en-US", { month: "short", day: "2-digit" });
+};
+
+const formatDateFull = (dateString: string) => {
+  if (!dateString) return "";
+  const d = new Date(dateString);
+  return d.toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" });
+};
+
+const mapLeaveType = (type: string): LeaveType => {
+  const lower = type.toLowerCase();
+  if (lower.includes("casual")) return "casual";
+  if (lower.includes("annual")) return "annual";
+  if (lower.includes("emergency")) return "emergency";
+  return "sick";
+};
+
 /* ─── Component ────────────────────────────────────────────────────── */
 
 export function ApplyLeave() {
@@ -95,14 +78,95 @@ export function ApplyLeave() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [reason, setReason] = useState("");
+  
+  const [history, setHistory] = useState<LeaveRecord[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [submitLoading, setSubmitLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault();
-    console.log("Leave request:", { leaveType, startDate, endDate, reason });
+  const fetchHistory = async () => {
+    try {
+      setLoading(true);
+      const res = await getLeaveHistory();
+      if (res && res.history) {
+        const mapped = res.history.map((item: any) => ({
+          id: item._id,
+          type: mapLeaveType(item.leaveType),
+          label: item.leaveType || "Unknown Leave",
+          startDate: formatDateShort(item.startDate),
+          endDate: formatDateShort(item.endDate),
+          totalDays: `${calculateDays(item.startDate, item.endDate)} days total`,
+          appliedDate: formatDateFull(item.createdAt),
+          status: (item.status || "Pending").toLowerCase() as LeaveStatus,
+        }));
+        setHistory(mapped);
+      }
+    } catch (err: any) {
+      console.error("Failed to load history", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
+  useEffect(() => {
+    fetchHistory();
+  }, []);
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!leaveType || !startDate || !endDate || !reason) {
+      setError("Please fill in all fields");
+      return;
+    }
+    
+    try {
+      setSubmitLoading(true);
+      setError("");
+      setSuccess("");
+      
+      const payload = {
+        leaveType,
+        startDate,
+        endDate,
+        reason
+      };
+      
+      await applyLeave(payload);
+      setSuccess("Leave request submitted successfully!");
+      setLeaveType("");
+      setStartDate("");
+      setEndDate("");
+      setReason("");
+      
+      // Refresh history
+      fetchHistory();
+    } catch (err: any) {
+      setError(err.message || "Failed to submit leave request");
+    } finally {
+      setSubmitLoading(false);
+    }
+  };
+
+  const pendingCount = history.filter(h => h.status === "pending").length;
+  const sickCount = history.filter(h => h.type === "sick" && h.status === "approved").length;
+  // Calculate total days used for approved leaves
+  let daysUsed = 0;
+  history.forEach(h => {
+    if (h.status === "approved") {
+       daysUsed += parseInt(h.totalDays.split(" ")[0]) || 0;
+    }
+  });
+
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 relative">
+      {success && (
+        <div className="absolute top-0 right-0 z-50 bg-[#186f45] text-white px-6 py-4 rounded-xl shadow-[8px_8px_16px_rgba(0,0,0,0.2)] flex items-center gap-3 animate-in slide-in-from-top-10 fade-in duration-300">
+          <CheckCircleIcon className="w-6 h-6 text-[#6cf3b7]" />
+          <span className="font-bold text-sm">{success}</span>
+        </div>
+      )}
+      
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
         {/* ══════════════ LEFT COLUMN: Request Form ══════════════ */}
         <div className="lg:col-span-2">
@@ -116,6 +180,12 @@ export function ApplyLeave() {
                 <Typography className="font-bold text-lg text-gray-800">Request Leave</Typography>
               </div>
 
+              {error && (
+                <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg text-sm font-bold shadow-[inset_2px_2px_4px_rgba(255,100,100,0.2)]">
+                  {error}
+                </div>
+              )}
+
               <form onSubmit={handleSubmit} className="space-y-5">
                 {/* Leave Type */}
                 <div>
@@ -126,10 +196,10 @@ export function ApplyLeave() {
                     value={leaveType}
                     onChange={(val: string | undefined) => setLeaveType(val || "")}
                   >
-                    <Option value="casual">Casual Leave</Option>
-                    <Option value="annual">Annual Leave</Option>
-                    <Option value="sick">Sick Leave</Option>
-                    <Option value="emergency">Emergency Leave</Option>
+                    <Option value="Casual">Casual Leave</Option>
+                    <Option value="Annual">Annual Leave</Option>
+                    <Option value="Sick">Sick Leave</Option>
+                    <Option value="Emergency">Emergency Leave</Option>
                   </Select>
                 </div>
 
@@ -150,6 +220,7 @@ export function ApplyLeave() {
                       type="date"
                       value={endDate}
                       onChange={(e) => setEndDate(e.target.value)}
+                      min={startDate}
                       className="w-full h-[46px] px-3 rounded-xl text-sm bg-[#f0f2f5] shadow-[inset_4px_4px_8px_#c4c7cc,inset_-4px_-4px_8px_#ffffff] border-none outline-none focus:ring-2 focus:ring-[#629955]/30 text-gray-700"
                     />
                   </div>
@@ -182,10 +253,11 @@ export function ApplyLeave() {
                 {/* Submit */}
                 <button
                   type="submit"
-                  className="w-full flex items-center justify-center gap-2.5 py-3.5 rounded-xl text-white font-bold bg-[#1a5c2e] shadow-[4px_4px_10px_#c4c7cc,-4px_-4px_10px_#ffffff] hover:bg-[#155025] active:shadow-[inset_3px_3px_6px_#0f3a1b,inset_-3px_-3px_6px_#1f7e37] transition-all duration-200"
+                  disabled={submitLoading}
+                  className="w-full flex items-center justify-center gap-2.5 py-3.5 rounded-xl text-white font-bold bg-[#1a5c2e] shadow-[4px_4px_10px_#c4c7cc,-4px_-4px_10px_#ffffff] hover:bg-[#155025] active:shadow-[inset_3px_3px_6px_#0f3a1b,inset_-3px_-3px_6px_#1f7e37] transition-all duration-200 disabled:opacity-50"
                 >
                   <PaperAirplaneIcon className="w-5 h-5" />
-                  Submit Leave Request
+                  {submitLoading ? "Submitting..." : "Submit Leave Request"}
                 </button>
               </form>
             </CardBody>
@@ -205,7 +277,7 @@ export function ApplyLeave() {
                 <div>
                   <Typography className="text-[10px] text-gray-400 font-bold uppercase">Days Used</Typography>
                   <Typography className="font-extrabold text-xl text-gray-800">
-                    12 <span className="text-sm text-gray-400 font-bold">/ 24</span>
+                    {daysUsed} <span className="text-sm text-gray-400 font-bold">/ 24</span>
                   </Typography>
                 </div>
               </CardBody>
@@ -219,7 +291,7 @@ export function ApplyLeave() {
                 </div>
                 <div>
                   <Typography className="text-[10px] text-gray-400 font-bold uppercase">Pending</Typography>
-                  <Typography className="font-extrabold text-xl text-blue-600">01</Typography>
+                  <Typography className="font-extrabold text-xl text-blue-600">{pendingCount.toString().padStart(2, '0')}</Typography>
                 </div>
               </CardBody>
             </Card>
@@ -232,17 +304,17 @@ export function ApplyLeave() {
                 </div>
                 <div>
                   <Typography className="text-[10px] text-gray-400 font-bold uppercase">Sick Leave</Typography>
-                  <Typography className="font-extrabold text-xl text-gray-800">03</Typography>
+                  <Typography className="font-extrabold text-xl text-gray-800">{sickCount.toString().padStart(2, '0')}</Typography>
                 </div>
               </CardBody>
             </Card>
           </div>
 
           {/* Leave History Table */}
-          <Card className="bg-[#e6e9ef] shadow-[8px_8px_16px_#c4c7cc,-8px_-8px_16px_#ffffff] rounded-2xl border-none">
-            <CardBody className="p-5 sm:p-6">
+          <Card className="bg-[#e6e9ef] shadow-[8px_8px_16px_#c4c7cc,-8px_-8px_16px_#ffffff] rounded-2xl border-none flex-1">
+            <CardBody className="p-5 sm:p-6 flex flex-col h-full">
               {/* Table Header */}
-              <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center justify-between mb-5 shrink-0">
                 <div className="flex items-center gap-2.5">
                   <div className="w-7 h-7 rounded-lg bg-[#e0f0db] flex items-center justify-center">
                     <ClockIcon className="w-4 h-4 text-[#3d6e32]" />
@@ -256,76 +328,66 @@ export function ApplyLeave() {
               </div>
 
               {/* Table */}
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="text-left">
-                      <th className="pb-3 text-xs font-bold text-gray-400 uppercase">Type</th>
-                      <th className="pb-3 text-xs font-bold text-gray-400 uppercase">Date Range</th>
-                      <th className="pb-3 text-xs font-bold text-gray-400 uppercase hidden sm:table-cell">Applied Date</th>
-                      <th className="pb-3 text-xs font-bold text-gray-400 uppercase">Status</th>
-                      <th className="pb-3 text-xs font-bold text-gray-400 uppercase text-center">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200/50">
-                    {LEAVE_HISTORY.map((leave) => {
-                      const statusStyle = STATUS_BADGE[leave.status];
-                      const StatusIcon = statusStyle.icon;
+              <div className="overflow-x-auto overflow-y-auto max-h-[300px] flex-1">
+                {loading ? (
+                  <div className="flex items-center justify-center h-full">
+                    <Typography color="gray" className="font-bold">Loading history...</Typography>
+                  </div>
+                ) : history.length === 0 ? (
+                   <div className="flex items-center justify-center h-full">
+                    <Typography color="gray" className="font-bold">No leave history found.</Typography>
+                  </div>
+                ) : (
+                  <table className="w-full">
+                    <thead>
+                      <tr className="text-left sticky top-0 bg-[#e6e9ef] z-10">
+                        <th className="pb-3 pt-1 text-xs font-bold text-gray-400 uppercase">Type</th>
+                        <th className="pb-3 pt-1 text-xs font-bold text-gray-400 uppercase">Date Range</th>
+                        <th className="pb-3 pt-1 text-xs font-bold text-gray-400 uppercase hidden sm:table-cell">Applied Date</th>
+                        <th className="pb-3 pt-1 text-xs font-bold text-gray-400 uppercase">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200/50">
+                      {history.map((leave) => {
+                        const statusStyle = STATUS_BADGE[leave.status] || STATUS_BADGE["pending"];
+                        const StatusIcon = statusStyle.icon;
 
-                      return (
-                        <tr key={leave.id} className="hover:bg-[#dde0e5]/40 transition-colors">
-                          {/* Type */}
-                          <td className="py-4 pr-3">
-                            <div className="flex items-center gap-2.5">
-                              <span className={`w-2.5 h-2.5 rounded-full ${TYPE_DOT_COLORS[leave.type]}`}></span>
-                              <Typography className="font-semibold text-sm text-gray-700">{leave.label}</Typography>
-                            </div>
-                          </td>
+                        return (
+                          <tr key={leave.id} className="hover:bg-[#dde0e5]/40 transition-colors">
+                            {/* Type */}
+                            <td className="py-4 pr-3">
+                              <div className="flex items-center gap-2.5">
+                                <span className={`w-2.5 h-2.5 rounded-full ${TYPE_DOT_COLORS[leave.type] || "bg-gray-500"}`}></span>
+                                <Typography className="font-semibold text-sm text-gray-700">{leave.label}</Typography>
+                              </div>
+                            </td>
 
-                          {/* Date Range */}
-                          <td className="py-4 pr-3">
-                            <Typography className="text-sm font-semibold text-gray-700">
-                              {leave.startDate} - {leave.endDate}
-                            </Typography>
-                            <Typography className="text-[11px] text-gray-400">{leave.totalDays}</Typography>
-                          </td>
+                            {/* Date Range */}
+                            <td className="py-4 pr-3">
+                              <Typography className="text-sm font-semibold text-gray-700">
+                                {leave.startDate} - {leave.endDate}
+                              </Typography>
+                              <Typography className="text-[11px] text-gray-400">{leave.totalDays}</Typography>
+                            </td>
 
-                          {/* Applied Date */}
-                          <td className="py-4 pr-3 hidden sm:table-cell">
-                            <Typography className="text-sm text-gray-500">{leave.appliedDate}</Typography>
-                          </td>
+                            {/* Applied Date */}
+                            <td className="py-4 pr-3 hidden sm:table-cell">
+                              <Typography className="text-sm text-gray-500">{leave.appliedDate}</Typography>
+                            </td>
 
-                          {/* Status */}
-                          <td className="py-4 pr-3">
-                            <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold ${statusStyle.bg} ${statusStyle.text}`}>
-                              <StatusIcon className="w-3.5 h-3.5" />
-                              {statusStyle.label}
-                            </span>
-                          </td>
-
-                          {/* Action */}
-                          <td className="py-4 text-center">
-                            {leave.status === "pending" && (
-                              <button className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all" title="Cancel">
-                                <XCircleIcon className="w-5 h-5" />
-                              </button>
-                            )}
-                            {leave.status === "approved" && (
-                              <button className="p-1.5 rounded-lg text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition-all" title="View">
-                                <EyeIcon className="w-5 h-5" />
-                              </button>
-                            )}
-                            {leave.status === "rejected" && (
-                              <button className="p-1.5 rounded-lg text-gray-400 hover:text-amber-500 hover:bg-amber-50 transition-all" title="Feedback">
-                                <ChatBubbleLeftIcon className="w-5 h-5" />
-                              </button>
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                            {/* Status */}
+                            <td className="py-4 pr-3">
+                              <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold ${statusStyle.bg} ${statusStyle.text}`}>
+                                <StatusIcon className="w-3.5 h-3.5" />
+                                {statusStyle.label}
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                )}
               </div>
             </CardBody>
           </Card>

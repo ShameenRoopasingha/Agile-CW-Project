@@ -1,51 +1,67 @@
-import { useState } from "react";
-import { UserPlusIcon, UsersIcon, ShieldCheckIcon, TruckIcon, ExclamationCircleIcon } from "@heroicons/react/24/outline";
+import { useState, useEffect, useCallback } from "react";
+import { UserPlusIcon, UsersIcon, ShieldCheckIcon, TruckIcon, BriefcaseIcon } from "@heroicons/react/24/outline";
 import { StatCard } from "./components/staff/StatCard";
 import { StaffTable } from "./components/staff/StaffTable";
 import { AddStaffModal } from "./components/staff/AddStaffModal";
 import type { Staff } from "../../types/staff";
-
-const mockStaff: Staff[] = [
-  {
-    id: "EC-4829",
-    name: "Sarah Chen",
-    role: "Logistics Coordinator",
-    department: "Central Logistics",
-    email: "s.chen@ecocycle.gov",
-    status: "Active",
-    avatarUrl: "/avatars/sarah.jpg"
-  },
-  {
-    id: "EC-1025",
-    name: "Arthur Miller",
-    role: "Fleet Supervisor",
-    department: "Operations",
-    email: "a.miller@ecocycle.gov",
-    status: "Active",
-    avatarUrl: "/avatars/arthur.jpg"
-  },
-  {
-    id: "EC-3310",
-    name: "James Doe",
-    role: "Maintenance Tech",
-    department: "Asset Management",
-    email: "j.doe@ecocycle.gov",
-    status: "Inactive",
-    avatarUrl: "/avatars/james.jpg"
-  },
-  {
-    id: "EC-5012",
-    name: "Elena Rodriguez",
-    role: "Environmental Analyst",
-    department: "Sustainability",
-    email: "e.rodriguez@ecocycle.gov",
-    status: "Active",
-    avatarUrl: "/avatars/elena.jpg"
-  }
-];
+import { getAllStaff, getStaffCount, searchStaff } from "../../lib/api";
 
 export function StaffDirectory() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [staffList, setStaffList] = useState<Staff[]>([]);
+  const [stats, setStats] = useState<any>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [, setLoading] = useState(true);
+
+  const fetchStaffData = useCallback(async () => {
+    try {
+      setLoading(true);
+      if (searchQuery.trim().length > 0) {
+        // Search mode
+        const res = await searchStaff(searchQuery);
+        if (res && res.results) {
+          const mapped = res.results.map((s: any) => ({
+            id: s._id || s.id,
+            name: s.name,
+            email: s.email,
+            role: s.role,
+            department: s.role === "PHI" ? "Health" : s.role === "Driver" ? "Fleet" : "Operations",
+            status: "Active"
+          }));
+          setStaffList(mapped);
+        }
+      } else {
+        // Normal mode
+        const [staffRes, countRes] = await Promise.all([
+          getAllStaff(),
+          getStaffCount()
+        ]);
+        
+        if (staffRes) {
+          const phis = (staffRes.PHI || []).map((s:any) => ({ ...s, id: s._id || s.id, department: "Health", status: "Active" }));
+          const drivers = (staffRes.drivers || []).map((s:any) => ({ ...s, id: s._id || s.id, department: "Fleet", status: "Active" }));
+          const fleets = (staffRes.fleetOperators || []).map((s:any) => ({ ...s, id: s._id || s.id, department: "Logistics", status: "Active" }));
+          const collectors = (staffRes.collectionEmployees || []).map((s:any) => ({ ...s, id: s._id || s.id, department: "Operations", status: "Active" }));
+          setStaffList([...phis, ...drivers, ...fleets, ...collectors]);
+        }
+        if (countRes) {
+          setStats(countRes);
+        }
+      }
+    } catch (err) {
+      console.error("Failed to load staff", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [searchQuery]);
+
+  useEffect(() => {
+    // Debounce search
+    const timer = setTimeout(() => {
+      fetchStaffData();
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery, fetchStaffData]);
 
   return (
     <div className="max-w-[1600px] mx-auto h-full flex flex-col gap-6 relative">
@@ -56,7 +72,9 @@ export function StaffDirectory() {
            <svg className="w-5 h-5 text-gray-500 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
            <input 
              type="text" 
-             placeholder="Search staff, roles, or departments..." 
+             value={searchQuery}
+             onChange={(e) => setSearchQuery(e.target.value)}
+             placeholder="Search staff by name, email or ID..." 
              className="bg-transparent border-none outline-none w-full text-sm text-gray-700 font-medium placeholder-gray-400 min-w-0"
            />
         </div>
@@ -73,39 +91,40 @@ export function StaffDirectory() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 shrink-0">
         <StatCard 
           title="Total Personnel" 
-          value="142" 
+          value={stats?.totalStaff?.toString() || "-"} 
           icon={UsersIcon} 
           iconColorClass="text-[#186f45]" 
         />
         <StatCard 
-          title="Active Duty" 
-          value="138" 
+          title="PHI Officers" 
+          value={stats?.breakdown?.PHI?.toString() || "-"} 
           icon={ShieldCheckIcon} 
           iconColorClass="text-[#186f45]" 
         />
         <StatCard 
-          title="Fleet Staff" 
-          value="56" 
+          title="Drivers" 
+          value={stats?.breakdown?.driver?.toString() || "-"} 
           icon={TruckIcon} 
           iconColorClass="text-gray-600" 
         />
         <StatCard 
-          title="On Leave" 
-          value="4" 
-          icon={ExclamationCircleIcon} 
-          iconColorClass="text-red-500" 
+          title="Other Staff" 
+          value={((stats?.breakdown?.fleetOperator || 0) + (stats?.breakdown?.collectionEmployee || 0)).toString() || "-"} 
+          icon={BriefcaseIcon} 
+          iconColorClass="text-blue-500" 
         />
       </div>
 
       {/* Main Table Section */}
       <div className="flex-1 min-h-0 flex flex-col pb-6">
-        <StaffTable staffList={mockStaff} />
+        <StaffTable staffList={staffList} onRefresh={fetchStaffData} />
       </div>
 
       {/* Add Staff Modal */}
       <AddStaffModal 
         isOpen={isAddModalOpen} 
         onClose={() => setIsAddModalOpen(false)} 
+        onSuccess={fetchStaffData}
       />
 
     </div>

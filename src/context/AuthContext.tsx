@@ -11,7 +11,7 @@ export interface UserData {
   email: string;
 }
 
-export type Role = "citizen" | "admin" | "driver" | null;
+export type Role = "citizen" | "admin" | "driver" | "fleet_manager" | null;
 
 interface AuthContextType {
   user: UserData | null;
@@ -43,7 +43,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const response = await authMe();
       if (response && response.success && response.data) {
         setUser(response.data);
-        const normalizedRole = response.model?.toString().toLowerCase();
+        let normalizedRole = response.model?.toString().toLowerCase();
+        if (normalizedRole === "fleetoperator") {
+          normalizedRole = "fleet_manager";
+        }
         setRole(normalizedRole as Role);
       } else {
         throw new Error("Invalid auth data");

@@ -10,7 +10,7 @@ import {
   UserIcon,
   MapPinIcon,
   EnvelopeIcon,
-  CheckIcon,
+
 } from "@heroicons/react/24/outline";
 
 // ── Shared modules ─────────────────────────────────────────────────────
@@ -192,7 +192,7 @@ export function SignUp() {
                   crossOrigin={undefined}
                   className="!h-[54px] !border-none !bg-[#f0f2f5] !rounded-xl shadow-[inset_4px_4px_8px_#c4c7cc,inset_-4px_-4px_8px_#ffffff]"
                   value={formData.premisesNo}
-                  onChange={(e) => handleInputChange("premisesNo", e.target.value)}
+                  onChange={(e: any) => handleInputChange("premisesNo", e.target.value)}
                 />
               </div>
 
@@ -206,7 +206,7 @@ export function SignUp() {
                   crossOrigin={undefined}
                   className="!h-[54px] !border-none !bg-[#f0f2f5] !rounded-xl shadow-[inset_4px_4px_8px_#c4c7cc,inset_-4px_-4px_8px_#ffffff]"
                   value={formData.name}
-                  onChange={(e) => handleInputChange("name", e.target.value)}
+                  onChange={(e: any) => handleInputChange("name", e.target.value)}
                 />
               </div>
             </div>
@@ -216,7 +216,7 @@ export function SignUp() {
                 label="Home Town" 
                 className="!h-[54px] !border-none !bg-[#f0f2f5] !rounded-xl shadow-[inset_4px_4px_8px_#c4c7cc,inset_-4px_-4px_8px_#ffffff]"
                 value={formData.HomeTown}
-                onChange={(val) => handleInputChange("HomeTown", val as string)}
+                onChange={(val: any) => handleInputChange("HomeTown", val as string)}
               >
                 {HOME_TOWNS.map((town) => (
                   <Option key={town.value} value={town.value}>
@@ -234,7 +234,7 @@ export function SignUp() {
                 crossOrigin={undefined}
                 className="!h-[54px] !border-none !bg-[#f0f2f5] !rounded-xl shadow-[inset_4px_4px_8px_#c4c7cc,inset_-4px_-4px_8px_#ffffff]"
                 value={formData.Landmark}
-                onChange={(e) => handleInputChange("Landmark", e.target.value)}
+                onChange={(e: any) => handleInputChange("Landmark", e.target.value)}
               />
             </div>
           </div>
@@ -257,7 +257,7 @@ export function SignUp() {
               crossOrigin={undefined}
               className="!h-[54px] !border-none !bg-[#f0f2f5] !rounded-xl shadow-[inset_4px_4px_8px_#c4c7cc,inset_-4px_-4px_8px_#ffffff]"
               value={formData.email}
-              onChange={(e) => handleInputChange("email", e.target.value)}
+              onChange={(e: any) => handleInputChange("email", e.target.value)}
             />
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-6">
@@ -270,7 +270,7 @@ export function SignUp() {
                   crossOrigin={undefined}
                   className="!h-[54px] !border-none !bg-[#f0f2f5] !rounded-xl shadow-[inset_4px_4px_8px_#c4c7cc,inset_-4px_-4px_8px_#ffffff]"
                   value={formData.password}
-                  onChange={(e) => handleInputChange("password", e.target.value)}
+                  onChange={(e: any) => handleInputChange("password", e.target.value)}
                 />
                 <IconButton
                   variant="text"
@@ -295,7 +295,7 @@ export function SignUp() {
                   crossOrigin={undefined}
                   className="!h-[54px] !border-none !bg-[#f0f2f5] !rounded-xl shadow-[inset_4px_4px_8px_#c4c7cc,inset_-4px_-4px_8px_#ffffff]"
                   value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  onChange={(e: any) => setConfirmPassword(e.target.value)}
                 />
                 <IconButton
                   variant="text"

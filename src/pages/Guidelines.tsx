@@ -1,4 +1,4 @@
-import { DocumentTextIcon, PrinterIcon, ArrowDownTrayIcon, CheckBadgeIcon, ClockIcon, UsersIcon, ChevronUpIcon, ChevronDownIcon, MagnifyingGlassPlusIcon, MagnifyingGlassMinusIcon, ArrowsPointingOutIcon } from "@heroicons/react/24/outline";
+import { DocumentTextIcon, PrinterIcon, CheckBadgeIcon, ClockIcon, UsersIcon, ChevronUpIcon, ChevronDownIcon, MagnifyingGlassPlusIcon, MagnifyingGlassMinusIcon, ArrowsPointingOutIcon } from "@heroicons/react/24/outline";
 
 export function Guidelines() {
   return (
@@ -102,11 +102,4 @@ export function Guidelines() {
 }
 
 // Custom Leaf SVG to match the EcoCycle brand feel
-function LeafSvg(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg fill="currentColor" viewBox="0 0 24 24" {...props}>
-      <path d="M17.026 2.455c-3.134.02-6.643 1.258-9.52 4.135C4.628 9.468 3.4 12.977 3.4 16.111v1.65l-2.072 2.072a1 1 0 0 0 1.414 1.414l2.072-2.072h1.65c3.134 0 6.643-1.228 9.52-4.105 2.877-2.877 4.115-6.386 4.115-9.52V3.9a1.5 1.5 0 0 0-1.5-1.5h-1.573zm-.5 2h1.073V5.55c0 2.7-.936 5.674-3.408 8.146-2.472 2.472-5.446 3.408-8.146 3.408H5.4V16.03c0-2.7.936-5.674 3.408-8.146 2.472-2.472 5.446-3.408 8.146-3.408h.572z" />
-      <path d="M14.61 7.975a1 1 0 0 0-1.414 0l-5.657 5.657a1 1 0 0 0 1.414 1.414l5.657-5.657a1 1 0 0 0 0-1.414z" />
-    </svg>
-  );
-}
+

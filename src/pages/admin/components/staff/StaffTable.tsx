@@ -13,37 +13,72 @@ import {
   CheckCircleIcon
 } from "@heroicons/react/24/outline";
 import type { Staff } from "../../../../types/staff";
+import { updateStaff, deleteStaff } from "../../../../lib/api";
 
 interface StaffTableProps {
   staffList: Staff[];
+  onRefresh?: () => void;
 }
 
-export const StaffTable = memo(({ staffList }: StaffTableProps) => {
+export const StaffTable = memo(({ staffList, onRefresh }: StaffTableProps) => {
   const [deleteModalStaff, setDeleteModalStaff] = useState<Staff | null>(null);
   const [editModalStaff, setEditModalStaff] = useState<Staff | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
+  const [isProcessing, setIsProcessing] = useState(false);
+  
+  // Edit form state
+  const [editPhone, setEditPhone] = useState("");
+  const [editPassword, setEditPassword] = useState("");
+  const [editName, setEditName] = useState("");
 
   const handleDelete = (staff: Staff) => {
     setDeleteModalStaff(staff);
   };
 
-  const confirmDelete = () => {
-    setDeleteModalStaff(null);
-    setSuccessMessage("Staff deleted successfully!");
-    setShowSuccess(true);
-    setTimeout(() => setShowSuccess(false), 3000);
+  const confirmDelete = async () => {
+    if (!deleteModalStaff) return;
+    try {
+      setIsProcessing(true);
+      await deleteStaff(deleteModalStaff.id);
+      setDeleteModalStaff(null);
+      setSuccessMessage("Staff deleted successfully!");
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 3000);
+      if (onRefresh) onRefresh();
+    } catch (err: any) {
+      alert("Failed to delete staff: " + err.message);
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const handleEdit = (staff: Staff) => {
     setEditModalStaff(staff);
+    setEditName(staff.name);
+    setEditPhone("");
+    setEditPassword("");
   };
 
-  const confirmEdit = () => {
-    setEditModalStaff(null);
-    setSuccessMessage("Staff updated successfully!");
-    setShowSuccess(true);
-    setTimeout(() => setShowSuccess(false), 3000);
+  const confirmEdit = async () => {
+    if (!editModalStaff) return;
+    try {
+      setIsProcessing(true);
+      const payload: any = { name: editName };
+      if (editPhone) payload.phone = editPhone;
+      if (editPassword) payload.password = editPassword;
+
+      await updateStaff(editModalStaff.id, payload);
+      setEditModalStaff(null);
+      setSuccessMessage("Staff updated successfully!");
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 3000);
+      if (onRefresh) onRefresh();
+    } catch (err: any) {
+      alert("Failed to update staff: " + err.message);
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
@@ -194,13 +229,25 @@ export const StaffTable = memo(({ staffList }: StaffTableProps) => {
               <div>
                 <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2 ml-1">Full Name</label>
                 <div className="bg-[#f0f2f5] rounded-xl px-4 py-2 shadow-[inset_2px_2px_4px_#c4c7cc,inset_-2px_-2px_4px_#ffffff] h-11 flex items-center">
-                  <span className="text-sm font-bold text-gray-800">{editModalStaff.name}</span>
+                  <input type="text" value={editName} onChange={(e) => setEditName(e.target.value)} className="bg-transparent border-none outline-none w-full text-sm font-bold text-gray-800" />
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2 ml-1">Role / Department</label>
-                <div className="bg-[#f0f2f5] rounded-xl px-4 py-2 shadow-[inset_2px_2px_4px_#c4c7cc,inset_-2px_-2px_4px_#ffffff] h-11 flex items-center">
+                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2 ml-1">Role / Department (Read-only)</label>
+                <div className="bg-[#f0f2f5] rounded-xl px-4 py-2 shadow-[inset_2px_2px_4px_#c4c7cc,inset_-2px_-2px_4px_#ffffff] h-11 flex items-center opacity-70">
                   <span className="text-sm font-bold text-gray-800">{editModalStaff.role}</span>
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2 ml-1">New Phone Number (Optional)</label>
+                <div className="bg-[#f0f2f5] rounded-xl px-4 py-2 shadow-[inset_2px_2px_4px_#c4c7cc,inset_-2px_-2px_4px_#ffffff] h-11 flex items-center">
+                  <input type="tel" placeholder="Leave empty to keep current" value={editPhone} onChange={(e) => setEditPhone(e.target.value)} className="bg-transparent border-none outline-none w-full text-sm font-bold text-gray-800" />
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2 ml-1">New Password (Optional)</label>
+                <div className="bg-[#f0f2f5] rounded-xl px-4 py-2 shadow-[inset_2px_2px_4px_#c4c7cc,inset_-2px_-2px_4px_#ffffff] h-11 flex items-center">
+                  <input type="password" placeholder="Leave empty to keep current" value={editPassword} onChange={(e) => setEditPassword(e.target.value)} className="bg-transparent border-none outline-none w-full text-sm font-bold text-gray-800" />
                 </div>
               </div>
             </div>
@@ -209,8 +256,8 @@ export const StaffTable = memo(({ staffList }: StaffTableProps) => {
               <button onClick={() => setEditModalStaff(null)} className="px-6 py-2.5 rounded-xl font-bold text-sm text-gray-600 hover:bg-gray-200/50 transition-colors">
                 Cancel
               </button>
-              <button onClick={confirmEdit} className="px-6 py-2.5 bg-[#6cf3b7] text-[#145c39] rounded-xl font-bold text-sm shadow-[6px_6px_12px_#c4c7cc,-6px_-6px_12px_#ffffff] hover:shadow-[inset_2px_2px_4px_rgba(0,0,0,0.15)] transition-all">
-                Save Changes
+              <button onClick={confirmEdit} disabled={isProcessing} className="px-6 py-2.5 bg-[#6cf3b7] text-[#145c39] rounded-xl font-bold text-sm shadow-[6px_6px_12px_#c4c7cc,-6px_-6px_12px_#ffffff] hover:shadow-[inset_2px_2px_4px_rgba(0,0,0,0.15)] transition-all disabled:opacity-50">
+                {isProcessing ? "Saving..." : "Save Changes"}
               </button>
             </div>
           </div>
@@ -233,8 +280,8 @@ export const StaffTable = memo(({ staffList }: StaffTableProps) => {
               <button onClick={() => setDeleteModalStaff(null)} className="flex-1 py-2.5 rounded-xl font-bold text-sm text-gray-700 bg-[#e6e9ef] shadow-[6px_6px_12px_#c4c7cc,-6px_-6px_12px_#ffffff] hover:shadow-[inset_2px_2px_4px_#c4c7cc,inset_-2px_-2px_4px_#ffffff] transition-all">
                 Cancel
               </button>
-              <button onClick={confirmDelete} className="flex-1 py-2.5 bg-[#ffd9d9] text-red-600 rounded-xl font-bold text-sm shadow-[6px_6px_12px_#c4c7cc,-6px_-6px_12px_#ffffff] hover:shadow-[inset_2px_2px_4px_#c4c7cc,inset_-2px_-2px_4px_#ffffff] transition-all">
-                Delete
+              <button onClick={confirmDelete} disabled={isProcessing} className="flex-1 py-2.5 bg-[#ffd9d9] text-red-600 rounded-xl font-bold text-sm shadow-[6px_6px_12px_#c4c7cc,-6px_-6px_12px_#ffffff] hover:shadow-[inset_2px_2px_4px_#c4c7cc,inset_-2px_-2px_4px_#ffffff] transition-all disabled:opacity-50">
+                {isProcessing ? "Deleting..." : "Delete"}
               </button>
             </div>
           </div>
