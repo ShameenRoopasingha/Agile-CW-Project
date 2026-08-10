@@ -1,15 +1,37 @@
-import { memo } from "react";
+import { memo, useState } from "react";
 import { Typography, Card } from "../../../lib/mt-components";
 import { XMarkIcon, UserIcon, PhoneIcon } from "@heroicons/react/24/outline";
 import { UsersIcon } from "@heroicons/react/24/solid";
 import type { Complaint } from "../../../types/complaint";
+import { updateComplaintStatus } from "../../../lib/api";
 
 interface ComplaintDetailsPanelProps {
   complaint: Complaint;
   onClose: () => void;
+  onRefresh?: () => void;
 }
 
-export const ComplaintDetailsPanel = memo(({ complaint, onClose }: ComplaintDetailsPanelProps) => {
+export const ComplaintDetailsPanel = memo(({ complaint, onClose, onRefresh }: ComplaintDetailsPanelProps) => {
+  const [status, setStatus] = useState(complaint.status);
+  const [isUpdating, setIsUpdating] = useState(false);
+
+  const handleSave = async () => {
+    if (status === complaint.status) {
+      onClose();
+      return;
+    }
+    
+    try {
+      setIsUpdating(true);
+      await updateComplaintStatus(complaint.id, status);
+      if (onRefresh) onRefresh();
+    } catch (err) {
+      alert("Failed to update status");
+      console.error(err);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
   return (
     <Card className="w-full sm:w-[400px] shrink-0 bg-[#e6e9ef] shadow-[12px_12px_24px_#c4c7cc,-12px_-12px_24px_#ffffff] border-none rounded-2xl flex flex-col h-full overflow-hidden animate-in slide-in-from-right-8 duration-300 relative z-10">
       {/* Panel Header */}
@@ -30,17 +52,25 @@ export const ComplaintDetailsPanel = memo(({ complaint, onClose }: ComplaintDeta
         {/* Photo Upload */}
         <div>
           <Typography variant="small" color="blue-gray" className="font-bold uppercase text-[11px] tracking-wider mb-3 text-gray-500">
-            Attached Photo
+            Attached Photos
           </Typography>
-          <div className="w-full h-48 bg-[#f0f2f5] rounded-2xl shadow-[inset_4px_4px_8px_#c4c7cc,inset_-4px_-4px_8px_#ffffff] overflow-hidden relative">
-            {complaint.photo ? (
+          {complaint.imageUrls && complaint.imageUrls.length > 0 ? (
+            <div className="flex gap-2 overflow-x-auto pb-2">
+              {complaint.imageUrls.map((url, i) => (
+                <div key={i} className="w-48 h-48 flex-shrink-0 bg-[#f0f2f5] rounded-2xl shadow-[inset_4px_4px_8px_#c4c7cc,inset_-4px_-4px_8px_#ffffff] overflow-hidden relative">
+                  <img src={url} alt={`Complaint ${i}`} className="w-full h-full object-cover opacity-90" />
+                </div>
+              ))}
+            </div>
+          ) : complaint.photo ? (
+            <div className="w-full h-48 bg-[#f0f2f5] rounded-2xl shadow-[inset_4px_4px_8px_#c4c7cc,inset_-4px_-4px_8px_#ffffff] overflow-hidden relative">
               <img src={complaint.photo} alt="Complaint" className="w-full h-full object-cover opacity-90" />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm font-bold">
-                No photo provided
-              </div>
-            )}
-          </div>
+            </div>
+          ) : (
+            <div className="w-full h-48 bg-[#f0f2f5] rounded-2xl shadow-[inset_4px_4px_8px_#c4c7cc,inset_-4px_-4px_8px_#ffffff] flex items-center justify-center text-gray-400 text-sm font-bold">
+              No photos provided
+            </div>
+          )}
         </div>
 
         {/* Description */}
@@ -83,9 +113,18 @@ export const ComplaintDetailsPanel = memo(({ complaint, onClose }: ComplaintDeta
             <Typography variant="small" color="blue-gray" className="font-bold uppercase text-[11px] tracking-wider mb-3 text-gray-500">
               Update Status
             </Typography>
-            <div className="h-12 bg-[#f0f2f5] shadow-[inset_4px_4px_8px_#c4c7cc,inset_-4px_-4px_8px_#ffffff] rounded-2xl flex items-center px-5 cursor-pointer hover:bg-[#e6e9ef] transition-colors">
-              <span className="text-sm font-bold text-gray-700 flex-1">{complaint.status}</span>
-              <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+            <div className="h-12 bg-[#f0f2f5] shadow-[inset_4px_4px_8px_#c4c7cc,inset_-4px_-4px_8px_#ffffff] rounded-2xl flex items-center px-5 cursor-pointer hover:bg-[#e6e9ef] transition-colors relative">
+              <select 
+                value={status.toLowerCase()}
+                onChange={(e) => setStatus(e.target.value)}
+                className="w-full h-full bg-transparent border-none outline-none text-sm font-bold text-gray-700 appearance-none cursor-pointer"
+              >
+                <option value="pending">Pending</option>
+                <option value="in-progress">In Progress</option>
+                <option value="resolved">Resolved</option>
+                <option value="rejected">Rejected</option>
+              </select>
+              <svg className="w-5 h-5 text-gray-500 absolute right-5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
             </div>
           </div>
 
@@ -103,8 +142,12 @@ export const ComplaintDetailsPanel = memo(({ complaint, onClose }: ComplaintDeta
 
       {/* Panel Footer */}
       <div className="p-6 shrink-0 bg-[#e6e9ef] shadow-[0_-4px_6px_-4px_#c4c7cc] flex items-center gap-4 z-10">
-        <button className="flex-1 bg-[#b2efcd] hover:bg-[#9de4be] text-[#2c5126] shadow-[4px_4px_8px_#c4c7cc,-4px_-4px_8px_#ffffff] active:shadow-[inset_3px_3px_6px_#9de4be,inset_-3px_-3px_6px_#c5fadb] font-bold text-sm py-3.5 rounded-xl transition-all">
-          Save Changes
+        <button 
+          onClick={handleSave}
+          disabled={isUpdating}
+          className="flex-1 bg-[#b2efcd] hover:bg-[#9de4be] text-[#2c5126] shadow-[4px_4px_8px_#c4c7cc,-4px_-4px_8px_#ffffff] active:shadow-[inset_3px_3px_6px_#9de4be,inset_-3px_-3px_6px_#c5fadb] font-bold text-sm py-3.5 rounded-xl transition-all disabled:opacity-50"
+        >
+          {isUpdating ? "Saving..." : "Save Changes"}
         </button>
         <button 
           onClick={onClose}

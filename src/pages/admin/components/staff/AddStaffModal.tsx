@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { addStaff } from "../../../../lib/api";
 import { 
   XMarkIcon, 
   CameraIcon, 
@@ -19,12 +20,15 @@ import { Typography, IconButton } from "../../../../lib/mt-components";
 interface AddStaffModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSuccess?: () => void;
 }
 
-export function AddStaffModal({ isOpen, onClose }: AddStaffModalProps) {
+export function AddStaffModal({ isOpen, onClose, onSuccess }: AddStaffModalProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   // Form states
   const [fullName, setFullName] = useState("");
@@ -34,16 +38,39 @@ export function AddStaffModal({ isOpen, onClose }: AddStaffModalProps) {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  const handleCreateAccount = () => {
-    // Show success notification
-    setShowSuccess(true);
-    // Clear form data
-    setFullName("");
-    setRole("");
-    setEmail("");
-    setMobile("");
-    setPassword("");
-    setConfirmPassword("");
+  const handleCreateAccount = async () => {
+    try {
+      setIsLoading(true);
+      setError("");
+      
+      const payload = {
+        name: fullName,
+        email,
+        phone: mobile,
+        password,
+        role
+      };
+      
+      await addStaff(payload);
+      
+      setShowSuccess(true);
+      
+      // Clear form data
+      setFullName("");
+      setRole("");
+      setEmail("");
+      setMobile("");
+      setPassword("");
+      setConfirmPassword("");
+      
+      if (onSuccess) {
+        onSuccess();
+      }
+    } catch (err: any) {
+      setError(err.message || "Failed to create staff");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleClose = () => {
@@ -94,6 +121,11 @@ export function AddStaffModal({ isOpen, onClose }: AddStaffModalProps) {
             <Typography variant="small" className="text-gray-600 font-medium">
               Create a new profile and assign operational roles.
             </Typography>
+            {error && (
+              <Typography variant="small" color="red" className="font-bold mt-2">
+                {error}
+              </Typography>
+            )}
           </div>
           <IconButton variant="text" color="blue-gray" onClick={handleClose} className="rounded-full hover:bg-gray-200/50 -mr-2 -mt-2">
             <XMarkIcon className="w-6 h-6 text-gray-600" />
@@ -148,8 +180,9 @@ export function AddStaffModal({ isOpen, onClose }: AddStaffModalProps) {
                 >
                   <option value="" disabled>Select Role</option>
                   <option value="PHI">PHI</option>
-                  <option value="Fleet Manager">Fleet Manager</option>
+                  <option value="FleetOperator">Fleet Operator</option>
                   <option value="Driver">Driver</option>
+                  <option value="CollectionEmployee">Collection Employee</option>
                 </select>
                 <ChevronDownIcon className="w-5 h-5 text-gray-500 absolute right-4 pointer-events-none" />
               </div>
@@ -238,10 +271,11 @@ export function AddStaffModal({ isOpen, onClose }: AddStaffModalProps) {
           </button>
           <button 
             onClick={handleCreateAccount}
-            className="h-12 px-8 bg-[#6cf3b7] text-[#145c39] rounded-xl font-bold text-sm flex items-center gap-2 shadow-[6px_6px_12px_#c4c7cc,-6px_-6px_12px_#ffffff] hover:shadow-[inset_2px_2px_4px_rgba(0,0,0,0.15)] transition-all"
+            disabled={isLoading}
+            className="h-12 px-8 bg-[#6cf3b7] text-[#145c39] rounded-xl font-bold text-sm flex items-center gap-2 shadow-[6px_6px_12px_#c4c7cc,-6px_-6px_12px_#ffffff] hover:shadow-[inset_2px_2px_4px_rgba(0,0,0,0.15)] transition-all disabled:opacity-50"
           >
             <UserPlusIcon className="w-5 h-5" />
-            Create Account
+            {isLoading ? "Creating..." : "Create Account"}
           </button>
         </div>
 

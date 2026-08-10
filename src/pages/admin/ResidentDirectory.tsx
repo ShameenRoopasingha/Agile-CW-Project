@@ -1,39 +1,68 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { UserPlusIcon, UsersIcon, ShieldCheckIcon, ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 import { StatCard } from "./components/staff/StatCard"; // Reusing the same StatCard component
 import { ResidentTable } from "./components/resident/ResidentTable";
 import { AddResidentModal } from "./components/resident/AddResidentModal";
 import type { Resident } from "../../types/resident";
-
-const mockResidents: Resident[] = [
-  {
-    id: "RES-8921",
-    name: "Michael Chang",
-    address: "45 Lotus Ave, Green City",
-    zone: "Zone B - West",
-    status: "Active",
-    avatarUrl: "/avatars/resident1.jpg"
-  },
-  {
-    id: "RES-1102",
-    name: "Sarah Silva",
-    address: "12 Palm Grove, Green City",
-    zone: "Zone A - Central",
-    status: "Suspended",
-    avatarUrl: "/avatars/resident2.jpg"
-  },
-  {
-    id: "RES-9934",
-    name: "David Fernando",
-    address: "88 Ocean Drive, Sea View",
-    zone: "Zone C - Coastal",
-    status: "Active",
-    avatarUrl: "/avatars/resident3.jpg"
-  }
-];
+import { getAllResidents, getResidentCount, searchResident } from "../../lib/api";
 
 export function ResidentDirectory() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [residentList, setResidentList] = useState<Resident[]>([]);
+  const [stats, setStats] = useState<any>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [loading, setLoading] = useState(true);
+
+  const fetchResidentData = useCallback(async () => {
+    try {
+      setLoading(true);
+      if (searchQuery.trim().length > 0) {
+        // Search mode
+        const res = await searchResident(searchQuery);
+        if (res && res.results) {
+          const mapped = res.results.map((r: any) => ({
+            id: r._id || r.id,
+            name: r.name,
+            address: r.premisesNo || "N/A",
+            zone: r.HomeTown || "Unknown",
+            status: r.isRegistered ? "Active" : "Suspended"
+          }));
+          setResidentList(mapped);
+        }
+      } else {
+        // Normal mode
+        const [resRes, countRes] = await Promise.all([
+          getAllResidents(),
+          getResidentCount()
+        ]);
+        
+        if (resRes && resRes.citizens) {
+          const mapped = resRes.citizens.map((r: any) => ({
+            id: r._id || r.id,
+            name: r.name,
+            address: r.premisesNo || "N/A",
+            zone: r.HomeTown || "Unknown",
+            status: r.isRegistered ? "Active" : "Suspended"
+          }));
+          setResidentList(mapped);
+        }
+        if (countRes) {
+          setStats(countRes);
+        }
+      }
+    } catch (err) {
+      console.error("Failed to load residents", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [searchQuery]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchResidentData();
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery, fetchResidentData]);
 
   return (
     <div className="max-w-[1600px] mx-auto h-full flex flex-col gap-6 relative">
@@ -44,7 +73,9 @@ export function ResidentDirectory() {
            <svg className="w-5 h-5 text-gray-500 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
            <input 
              type="text" 
-             placeholder="Search residents by name, ID, or zone..." 
+             value={searchQuery}
+             onChange={(e) => setSearchQuery(e.target.value)}
+             placeholder="Search residents by name, email, or premises..." 
              className="bg-transparent border-none outline-none w-full text-sm text-gray-700 font-medium placeholder-gray-400 min-w-0"
            />
         </div>
@@ -57,23 +88,23 @@ export function ResidentDirectory() {
         </button>
       </div>
 
-      {/* Stats Cards Section - 3 Cards as requested */}
+      {/* Stats Cards Section */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 shrink-0">
         <StatCard 
           title="Total Residents" 
-          value="4,205" 
+          value={stats?.totalCitizens?.toString() || "-"} 
           icon={UsersIcon} 
           iconColorClass="text-[#186f45]" 
         />
         <StatCard 
           title="Active Accounts" 
-          value="4,180" 
+          value={stats?.activeCitizens?.toString() || "-"} 
           icon={ShieldCheckIcon} 
           iconColorClass="text-[#186f45]" 
         />
         <StatCard 
-          title="Recent Violations" 
-          value="25" 
+          title="Non-Active Accounts" 
+          value={stats?.nonActiveCitizens?.toString() || "-"} 
           icon={ExclamationTriangleIcon} 
           iconColorClass="text-orange-500" 
         />
@@ -81,13 +112,14 @@ export function ResidentDirectory() {
 
       {/* Main Table Section */}
       <div className="flex-1 min-h-0 flex flex-col pb-6">
-        <ResidentTable residentList={mockResidents} />
+        <ResidentTable residentList={residentList} onRefresh={fetchResidentData} />
       </div>
 
       {/* Add Resident Modal */}
       <AddResidentModal 
         isOpen={isAddModalOpen} 
         onClose={() => setIsAddModalOpen(false)} 
+        onSuccess={fetchResidentData}
       />
 
     </div>

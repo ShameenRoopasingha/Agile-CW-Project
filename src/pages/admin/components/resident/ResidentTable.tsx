@@ -16,15 +16,23 @@ import {
   BanknotesIcon
 } from "@heroicons/react/24/outline";
 import type { Resident } from "../../../../types/resident";
+import { updateResident } from "../../../../lib/api";
 
 interface ResidentTableProps {
   residentList: Resident[];
+  onRefresh?: () => void;
 }
 
-export const ResidentTable = memo(({ residentList }: ResidentTableProps) => {
+export const ResidentTable = memo(({ residentList, onRefresh }: ResidentTableProps) => {
   const [deleteModalResident, setDeleteModalResident] = useState<Resident | null>(null);
   const [editModalResident, setEditModalResident] = useState<Resident | null>(null);
   const [violationModalResident, setViolationModalResident] = useState<Resident | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  
+  // Edit form state
+  const [editName, setEditName] = useState("");
+  const [editAddress, setEditAddress] = useState("");
+  const [editZone, setEditZone] = useState("");
   
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
@@ -46,9 +54,31 @@ export const ResidentTable = memo(({ residentList }: ResidentTableProps) => {
     triggerSuccess("Resident deleted successfully!");
   };
 
-  const confirmEdit = () => {
-    setEditModalResident(null);
-    triggerSuccess("Resident updated successfully!");
+  const handleEdit = (resident: Resident) => {
+    setEditModalResident(resident);
+    setEditName(resident.name);
+    setEditAddress(resident.address);
+    setEditZone(resident.zone);
+  };
+
+  const confirmEdit = async () => {
+    if (!editModalResident) return;
+    try {
+      setIsProcessing(true);
+      const payload = {
+        name: editName,
+        premisesNo: editAddress,
+        HomeTown: editZone
+      };
+      await updateResident(editModalResident.id, payload);
+      setEditModalResident(null);
+      triggerSuccess("Resident updated successfully!");
+      if (onRefresh) onRefresh();
+    } catch (err: any) {
+      alert("Failed to update resident: " + err.message);
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const confirmViolation = () => {
@@ -144,7 +174,7 @@ export const ResidentTable = memo(({ residentList }: ResidentTableProps) => {
                            variant="text" 
                            color="blue" 
                            title="Edit Resident"
-                           onClick={() => setEditModalResident(resident)}
+                           onClick={() => handleEdit(resident)}
                            className="w-8 h-8 rounded-lg bg-[#e6e9ef] shadow-[2px_2px_5px_#c4c7cc,-2px_-2px_5px_#ffffff] hover:shadow-[inset_2px_2px_5px_#c4c7cc,inset_-2px_-2px_5px_#ffffff] transition-all"
                          >
                            <PencilIcon className="w-4 h-4 text-blue-600" />
@@ -218,23 +248,34 @@ export const ResidentTable = memo(({ residentList }: ResidentTableProps) => {
               <div>
                 <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2 ml-1">Full Name</label>
                 <div className="bg-[#f0f2f5] rounded-xl px-4 py-2 shadow-[inset_2px_2px_4px_#c4c7cc,inset_-2px_-2px_4px_#ffffff] h-11 flex items-center">
-                  <span className="text-sm font-bold text-gray-800">{editModalResident.name}</span>
+                  <input type="text" value={editName} onChange={(e) => setEditName(e.target.value)} disabled={editModalResident.status === "Active"} className="bg-transparent border-none outline-none w-full text-sm font-bold text-gray-800 disabled:opacity-50" />
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2 ml-1">Address / Zone</label>
+                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2 ml-1">Address</label>
                 <div className="bg-[#f0f2f5] rounded-xl px-4 py-2 shadow-[inset_2px_2px_4px_#c4c7cc,inset_-2px_-2px_4px_#ffffff] h-11 flex items-center">
-                  <span className="text-sm font-bold text-gray-800">{editModalResident.address} - {editModalResident.zone}</span>
+                  <input type="text" value={editAddress} onChange={(e) => setEditAddress(e.target.value)} disabled={editModalResident.status === "Active"} className="bg-transparent border-none outline-none w-full text-sm font-bold text-gray-800 disabled:opacity-50" />
                 </div>
               </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2 ml-1">Zone</label>
+                <div className="bg-[#f0f2f5] rounded-xl px-4 py-2 shadow-[inset_2px_2px_4px_#c4c7cc,inset_-2px_-2px_4px_#ffffff] h-11 flex items-center">
+                  <input type="text" value={editZone} onChange={(e) => setEditZone(e.target.value)} disabled={editModalResident.status === "Active"} className="bg-transparent border-none outline-none w-full text-sm font-bold text-gray-800 disabled:opacity-50" />
+                </div>
+              </div>
+              {editModalResident.status === "Active" && (
+                <Typography variant="small" color="blue-gray" className="text-xs text-center font-bold opacity-70">
+                  Active resident fields cannot be edited here.
+                </Typography>
+              )}
             </div>
 
             <div className="flex items-center justify-end gap-4">
               <button onClick={() => setEditModalResident(null)} className="px-6 py-2.5 rounded-xl font-bold text-sm text-gray-600 hover:bg-gray-200/50 transition-colors">
                 Cancel
               </button>
-              <button onClick={confirmEdit} className="px-6 py-2.5 bg-[#6cf3b7] text-[#145c39] rounded-xl font-bold text-sm shadow-[6px_6px_12px_#c4c7cc,-6px_-6px_12px_#ffffff] hover:shadow-[inset_2px_2px_4px_rgba(0,0,0,0.15)] transition-all">
-                Save Changes
+              <button onClick={confirmEdit} disabled={isProcessing || editModalResident.status === "Active"} className="px-6 py-2.5 bg-[#6cf3b7] text-[#145c39] rounded-xl font-bold text-sm shadow-[6px_6px_12px_#c4c7cc,-6px_-6px_12px_#ffffff] hover:shadow-[inset_2px_2px_4px_rgba(0,0,0,0.15)] transition-all disabled:opacity-50">
+                {isProcessing ? "Saving..." : "Save Changes"}
               </button>
             </div>
           </div>
