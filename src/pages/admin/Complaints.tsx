@@ -1,62 +1,99 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Typography, Card } from "../../lib/mt-components";
-import { Bars3BottomRightIcon } from "@heroicons/react/24/solid";
+import { Bars3BottomRightIcon, MagnifyingGlassIcon } from "@heroicons/react/24/solid";
 import type { Complaint } from "../../types/complaint";
 import { ComplaintTableRow } from "./components/ComplaintTableRow";
 import { ComplaintDetailsPanel } from "./components/ComplaintDetailsPanel";
+import { getAllComplaints, searchComplaints, filterComplaints } from "../../lib/api";
 
-const complaintsData: Complaint[] = [
-  { 
-    id: "#CMP-1042", 
-    desc: "\"Uncollected garbage piled up near the community park entrance for 3 days.\"", 
-    reporter: "A.B. Perera", 
-    contact: "+94 77 123 4567",
-    date: "Oct 12, 2023", 
-    time: "09:45 AM",
-    location: "Community Park North",
-    asstNo: "AST-9902-12",
-    status: "Pending",
-    photo: "/trash_bags.png"
-  },
-  { 
-    id: "#CMP-1041", 
-    desc: "\"Broken bin lid allows animals to scatter trash on the street.\"", 
-    reporter: "M. Fernando", 
-    contact: "+94 71 987 6543",
-    date: "Oct 11, 2023", 
-    time: "04:15 PM",
-    location: "Galle Road, Sector 4",
-    asstNo: "AST-4451-09",
-    status: "In Progress"
-  },
-  { 
-    id: "#CMP-1038", 
-    desc: "\"Illegal dumping of construction waste in empty lot.\"", 
-    reporter: "K. Silva", 
-    contact: "+94 76 555 4444",
-    date: "Oct 10, 2023", 
-    time: "11:30 AM",
-    location: "Railway St. Terminal",
-    asstNo: "AST-2210-55",
-    status: "Resolved"
-  },
-  { 
-    id: "#CMP-1035", 
-    desc: "\"Missed regular scheduled pickup for the entire street.\"", 
-    reporter: "D. Jayasuriya", 
-    contact: "+94 70 111 2222",
-    date: "Oct 09, 2023", 
-    time: "08:20 AM",
-    location: "Lotus Grove Housing",
-    asstNo: "AST-1100-88",
-    status: "Resolved"
-  },
-];
+const mapBackendToFrontend = (item: any): Complaint => {
+  const d = new Date(item.createdAt);
+  return {
+    id: item._id,
+    title: item.title || "No Title",
+    desc: item.description || "",
+    type: item.type || "General",
+    reporter: item.citizen?.name || "Unknown",
+    contact: item.citizen?.contactNumber || item.citizen?.email || "Unknown",
+    date: d.toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" }),
+    time: d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }),
+    location: item.location || "Unknown",
+    asstNo: item.citizen?.premisesNo || "Unknown",
+    status: item.status || "Pending",
+    photo: item.imageUrls?.[0] || undefined,
+    imageUrls: item.imageUrls || [],
+    citizen: item.citizen,
+    createdAt: item.createdAt,
+  };
+};
 
 export function Complaints() {
+  const [complaintsData, setComplaintsData] = useState<Complaint[]>([]);
   const [selectedComplaint, setSelectedComplaint] = useState<Complaint | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  // Memoize event handlers to prevent child components from unnecessarily re-rendering
+  const fetchComplaints = useCallback(async () => {
+    try {
+      setLoading(true);
+      const res = await getAllComplaints();
+      if (res && res.complaints) {
+        setComplaintsData(res.complaints.map(mapBackendToFrontend));
+      }
+    } catch (err) {
+      console.error("Failed to fetch complaints", err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchComplaints();
+  }, [fetchComplaints]);
+
+  const handleSearch = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setSearchQuery(val);
+    
+    if (val.trim() === "") {
+      fetchComplaints();
+      return;
+    }
+    
+    try {
+      setLoading(true);
+      const res = await searchComplaints(val);
+      if (res && res.results) {
+        setComplaintsData(res.results.map(mapBackendToFrontend));
+      }
+    } catch (err) {
+      console.error("Failed to search complaints", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleFilterStatus = async (status: string) => {
+    setStatusFilter(status);
+    if (status === "") {
+      fetchComplaints();
+      return;
+    }
+    
+    try {
+      setLoading(true);
+      const res = await filterComplaints(status);
+      if (res && res.results) {
+        setComplaintsData(res.results.map(mapBackendToFrontend));
+      }
+    } catch (err) {
+      console.error("Failed to filter complaints", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSelectComplaint = useCallback((complaint: Complaint) => {
     setSelectedComplaint(complaint);
   }, []);
@@ -64,6 +101,14 @@ export function Complaints() {
   const handleClosePanel = useCallback(() => {
     setSelectedComplaint(null);
   }, []);
+
+  const handleRefresh = useCallback(() => {
+    fetchComplaints();
+    if (selectedComplaint) {
+      // Opt to close panel or update its state; simplest is close for now
+      setSelectedComplaint(null);
+    }
+  }, [fetchComplaints, selectedComplaint]);
 
   return (
     <div className="max-w-[1600px] mx-auto h-full flex gap-6 relative items-start">
@@ -74,84 +119,76 @@ export function Complaints() {
         {/* Header Stack */}
         <div className="flex flex-col gap-5 shrink-0 w-full">
           {/* Controls Row */}
-          <div className="flex items-center gap-3 w-full">
+          <div className="flex flex-wrap items-center gap-3 w-full">
             {/* Search Input */}
-            <div className="h-12 flex-1 bg-[#f0f2f5] rounded-xl shadow-[inset_4px_4px_8px_#c4c7cc,inset_-4px_-4px_8px_#ffffff] flex items-center px-4 min-w-[120px]">
-               <svg className="w-5 h-5 text-gray-500 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            <div className="h-12 flex-1 bg-[#f0f2f5] rounded-xl shadow-[inset_4px_4px_8px_#c4c7cc,inset_-4px_-4px_8px_#ffffff] flex items-center px-4 min-w-[200px]">
+               <MagnifyingGlassIcon className="w-5 h-5 text-gray-500 mr-3 shrink-0" />
                <input 
                  type="text" 
-                 placeholder="Search by Assessment No. or Name" 
+                 placeholder="Search by Name or Asst. No..." 
+                 value={searchQuery}
+                 onChange={handleSearch}
                  className="bg-transparent border-none outline-none w-full text-sm text-gray-700 font-medium placeholder-gray-400 min-w-0"
                />
             </div>
             
             {/* Status Dropdown */}
-            <button className="h-12 shrink-0 bg-[#e6e9ef] rounded-xl shadow-[4px_4px_8px_#c4c7cc,-4px_-4px_8px_#ffffff] flex items-center px-4 hover:shadow-[inset_2px_2px_4px_#c4c7cc,inset_-2px_-2px_4px_#ffffff] transition-shadow text-gray-700">
-              <span className="text-sm font-bold mr-2 hidden sm:block">All Statuses</span>
-              <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
-            </button>
-            
-            {/* Date Dropdown */}
-            <button className="h-12 shrink-0 bg-[#e6e9ef] rounded-xl shadow-[4px_4px_8px_#c4c7cc,-4px_-4px_8px_#ffffff] flex items-center px-4 hover:shadow-[inset_2px_2px_4px_#c4c7cc,inset_-2px_-2px_4px_#ffffff] transition-shadow text-gray-700">
-              <span className="text-sm font-bold mr-2 hidden sm:block">This Week</span>
-              <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
-            </button>
-
-            {/* Filter Button */}
-            <button className="h-12 w-12 shrink-0 bg-[#e6e9ef] rounded-xl shadow-[4px_4px_8px_#c4c7cc,-4px_-4px_8px_#ffffff] flex items-center justify-center hover:shadow-[inset_2px_2px_4px_#c4c7cc,inset_-2px_-2px_4px_#ffffff] transition-shadow text-gray-700">
-              <Bars3BottomRightIcon className="w-5 h-5" />
-            </button>
+            <select 
+              className="h-12 shrink-0 bg-[#e6e9ef] rounded-xl shadow-[4px_4px_8px_#c4c7cc,-4px_-4px_8px_#ffffff] flex items-center px-4 text-sm font-bold text-gray-700 outline-none"
+              value={statusFilter}
+              onChange={(e) => handleFilterStatus(e.target.value)}
+            >
+              <option value="">All Statuses</option>
+              <option value="pending">Pending</option>
+              <option value="in-progress">In Progress</option>
+              <option value="resolved">Resolved</option>
+              <option value="rejected">Rejected</option>
+            </select>
           </div>
         </div>
 
         {/* Main Table View */}
         <Card className="bg-[#e6e9ef] shadow-[12px_12px_24px_#c4c7cc,-12px_-12px_24px_#ffffff] rounded-2xl border-none flex-1 overflow-hidden flex flex-col z-0">
-          <div className="overflow-x-auto flex-1">
-            <table className="w-full min-w-max table-auto text-left border-collapse">
-              <thead>
-                <tr>
-                  {["COMPLAINT ID", "DATE SUBMITTED", "LOCATION / ASST. NO", "STATUS"].map((head) => (
-                    <th key={head} className="border-b border-gray-300 p-4 pt-6 pb-4">
-                      <Typography variant="small" color="blue-gray" className="font-bold uppercase tracking-wider text-xs text-gray-800">
-                        {head}
-                      </Typography>
-                    </th>
+          <div className="overflow-x-auto flex-1 h-full min-h-[400px]">
+            {loading ? (
+              <div className="flex items-center justify-center h-full">
+                <Typography color="gray" className="font-bold">Loading complaints...</Typography>
+              </div>
+            ) : complaintsData.length === 0 ? (
+               <div className="flex items-center justify-center h-full">
+                <Typography color="gray" className="font-bold">No complaints found.</Typography>
+              </div>
+            ) : (
+              <table className="w-full min-w-max table-auto text-left border-collapse">
+                <thead>
+                  <tr>
+                    {["COMPLAINT ID", "DATE SUBMITTED", "LOCATION / ASST. NO", "STATUS"].map((head) => (
+                      <th key={head} className="border-b border-gray-300 p-4 pt-6 pb-4">
+                        <Typography variant="small" color="blue-gray" className="font-bold uppercase tracking-wider text-xs text-gray-800">
+                          {head}
+                        </Typography>
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {complaintsData.map((complaint, index) => (
+                    <ComplaintTableRow 
+                      key={complaint.id}
+                      complaint={complaint}
+                      isLast={index === complaintsData.length - 1}
+                      isSelected={selectedComplaint?.id === complaint.id}
+                      onSelect={handleSelectComplaint}
+                    />
                   ))}
-                </tr>
-              </thead>
-              <tbody>
-                {complaintsData.map((complaint, index) => (
-                  <ComplaintTableRow 
-                    key={complaint.id}
-                    complaint={complaint}
-                    isLast={index === complaintsData.length - 1}
-                    isSelected={selectedComplaint?.id === complaint.id}
-                    onSelect={handleSelectComplaint}
-                  />
-                ))}
-              </tbody>
-            </table>
+                </tbody>
+              </table>
+            )}
           </div>
           
           {/* Pagination Footer */}
           <div className="p-4 border-t border-gray-300/50 flex items-center justify-between text-sm text-gray-600 bg-[#e6e9ef] shadow-[inset_0_4px_6px_-4px_#c4c7cc]">
-            <span className="font-medium text-xs">Showing 1 to 4 of 128 complaints</span>
-            <div className="flex items-center gap-3">
-              <button className="px-4 py-2 rounded-xl text-xs font-bold text-gray-700 bg-[#e6e9ef] shadow-[4px_4px_8px_#c4c7cc,-4px_-4px_8px_#ffffff] hover:shadow-[inset_2px_2px_4px_#c4c7cc,inset_-2px_-2px_4px_#ffffff] transition-all">
-                Previous
-              </button>
-              <div className="flex gap-2">
-                <button className="w-9 h-9 rounded-xl bg-[#b2efcd] text-[#2c5126] flex items-center justify-center text-xs font-bold shadow-[inset_2px_2px_4px_#9de4be,inset_-2px_-2px_4px_#c5fadb]">
-                  1
-                </button>
-                <button className="w-9 h-9 rounded-xl bg-[#e6e9ef] text-gray-700 flex items-center justify-center text-xs font-bold shadow-[4px_4px_8px_#c4c7cc,-4px_-4px_8px_#ffffff] hover:shadow-[inset_2px_2px_4px_#c4c7cc,inset_-2px_-2px_4px_#ffffff] transition-all">
-                  2
-                </button>
-              </div>
-              <button className="px-4 py-2 rounded-xl text-xs font-bold text-gray-700 bg-[#e6e9ef] shadow-[4px_4px_8px_#c4c7cc,-4px_-4px_8px_#ffffff] hover:shadow-[inset_2px_2px_4px_#c4c7cc,inset_-2px_-2px_4px_#ffffff] transition-all">
-                Next
-              </button>
-            </div>
+            <span className="font-medium text-xs">Showing {complaintsData.length} complaints</span>
           </div>
         </Card>
       </div>
@@ -161,6 +198,7 @@ export function Complaints() {
         <ComplaintDetailsPanel 
           complaint={selectedComplaint} 
           onClose={handleClosePanel} 
+          onRefresh={handleRefresh}
         />
       )}
     </div>

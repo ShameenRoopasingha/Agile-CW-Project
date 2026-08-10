@@ -15,15 +15,19 @@ export const ComplaintTableRow = memo(({ complaint, isLast, isSelected, onSelect
   
   let badgeColor = "";
   let badgeBg = "";
-  if (status === "Pending") {
+  const s = status.toLowerCase();
+  if (s === "pending") {
     badgeColor = "text-red-800";
     badgeBg = "bg-red-100/80 shadow-[inset_1px_1px_2px_rgba(255,150,150,0.3)]";
-  } else if (status === "In Progress") {
+  } else if (s === "in-progress") {
     badgeColor = "text-yellow-800";
     badgeBg = "bg-yellow-100 shadow-[inset_1px_1px_2px_rgba(255,200,100,0.3)]";
-  } else if (status === "Resolved") {
+  } else if (s === "resolved") {
     badgeColor = "text-teal-800";
     badgeBg = "bg-teal-100/80 shadow-[inset_1px_1px_2px_rgba(150,255,255,0.3)]";
+  } else if (s === "rejected") {
+    badgeColor = "text-red-900";
+    badgeBg = "bg-red-200 shadow-[inset_1px_1px_2px_rgba(255,100,100,0.3)]";
   }
 
   return (

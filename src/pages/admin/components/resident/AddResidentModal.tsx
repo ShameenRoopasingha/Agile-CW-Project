@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { addResident } from "../../../../lib/api";
 import { 
   XMarkIcon, 
   UserIcon, 
@@ -12,21 +13,43 @@ import { Typography, IconButton } from "../../../../lib/mt-components";
 interface AddResidentModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSuccess?: () => void;
 }
 
-export function AddResidentModal({ isOpen, onClose }: AddResidentModalProps) {
+export function AddResidentModal({ isOpen, onClose, onSuccess }: AddResidentModalProps) {
   const [showSuccess, setShowSuccess] = useState(false);
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   // Form states
   const [fullName, setFullName] = useState("");
   const [address, setAddress] = useState("");
   const [zone, setZone] = useState("");
 
-  const handleCreateAccount = () => {
-    setShowSuccess(true);
-    setFullName("");
-    setAddress("");
-    setZone("");
+  const handleCreateAccount = async () => {
+    try {
+      setIsLoading(true);
+      setError("");
+      
+      const payload = {
+        name: fullName,
+        premisesNo: address,
+        HomeTown: zone,
+      };
+      
+      await addResident(payload);
+      
+      setShowSuccess(true);
+      setFullName("");
+      setAddress("");
+      setZone("");
+      
+      if (onSuccess) onSuccess();
+    } catch (err: any) {
+      setError(err.message || "Failed to add resident");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleClose = () => {
@@ -74,6 +97,11 @@ export function AddResidentModal({ isOpen, onClose }: AddResidentModalProps) {
             <Typography variant="small" className="text-gray-600 font-medium">
               Create a new resident profile for municipal services.
             </Typography>
+            {error && (
+              <Typography variant="small" color="red" className="font-bold mt-2">
+                {error}
+              </Typography>
+            )}
           </div>
           <IconButton variant="text" color="blue-gray" onClick={handleClose} className="rounded-full hover:bg-gray-200/50 -mr-2 -mt-2">
             <XMarkIcon className="w-6 h-6 text-gray-600" />
@@ -143,10 +171,11 @@ export function AddResidentModal({ isOpen, onClose }: AddResidentModalProps) {
           </button>
           <button 
             onClick={handleCreateAccount}
-            className="h-12 px-8 bg-[#6cf3b7] text-[#145c39] rounded-xl font-bold text-sm flex items-center gap-2 shadow-[6px_6px_12px_#c4c7cc,-6px_-6px_12px_#ffffff] hover:shadow-[inset_2px_2px_4px_rgba(0,0,0,0.15)] transition-all"
+            disabled={isLoading}
+            className="h-12 px-8 bg-[#6cf3b7] text-[#145c39] rounded-xl font-bold text-sm flex items-center gap-2 shadow-[6px_6px_12px_#c4c7cc,-6px_-6px_12px_#ffffff] hover:shadow-[inset_2px_2px_4px_rgba(0,0,0,0.15)] transition-all disabled:opacity-50"
           >
             <UserPlusIcon className="w-5 h-5" />
-            Add Resident
+            {isLoading ? "Adding..." : "Add Resident"}
           </button>
         </div>
 

@@ -15,12 +15,14 @@ import {
   XMarkIcon,
   Cog6ToothIcon,
   MagnifyingGlassIcon,
+  MapPinIcon,
 } from "@heroicons/react/24/outline";
 import { Typography, IconButton } from "../lib/mt-components";
 import logo from "../assets/logo.png";
 
 const NAVIGATION = [
   { name: "Calendar", href: "/citizen/dashboard", icon: CalendarDaysIcon },
+  { name: "Add Location", href: "/citizen/add-location", icon: MapPinIcon },
   { name: "Track Garbage Truck", href: "/citizen/schedule", icon: TruckIcon },
   { name: "Bulky Waste", href: "/citizen/bulky-waste", icon: ArchiveBoxIcon },
   // { name: "Payments", href: "/citizen/profile", icon: CreditCardIcon },
