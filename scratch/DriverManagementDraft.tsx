@@ -4,7 +4,7 @@ import { Typography, Card, CardBody } from "../../lib/mt-components";
 import { UsersIcon, CheckCircleIcon, UserIcon, MoonIcon, PlusIcon, ArrowsRightLeftIcon, XMarkIcon } from "@heroicons/react/24/outline";
 
 const DRIVERS_API = "http://localhost:5000/api/drivers";
-const ASSIGNMENTS_API = "/routeg-api/driver-assignments";
+const ASSIGNMENTS_API = "http://localhost:3000/api/driver-assignments";
 
 export function DriverManagement() {
   const [drivers, setDrivers] = useState<any[]>([]);
@@ -19,23 +19,11 @@ export function DriverManagement() {
 
   const fetchData = async () => {
     setIsLoading(true);
-      const driversPromise = axios.get(DRIVERS_API).catch(e => {
-        console.error("Failed to fetch drivers", e);
-        return { data: { success: false } };
-      });
-      const trucksPromise = axios.get(`${ASSIGNMENTS_API}/detailed-trucks`).catch(e => {
-        console.error("Failed to fetch detailed trucks", e);
-        return { data: { success: false } };
-      });
-      const unassignedPromise = axios.get(`${ASSIGNMENTS_API}/unassigned`).catch(e => {
-        console.error("Failed to fetch unassigned drivers", e);
-        return { data: { success: false } };
-      });
-
+    try {
       const [driversRes, trucksRes, unassignedRes] = await Promise.all([
-        driversPromise,
-        trucksPromise,
-        unassignedPromise
+        axios.get(DRIVERS_API),
+        axios.get(`${ASSIGNMENTS_API}/detailed-trucks`),
+        axios.get(`${ASSIGNMENTS_API}/unassigned`)
       ]);
 
       if (driversRes.data.success) {
@@ -47,7 +35,12 @@ export function DriverManagement() {
       if (unassignedRes.data.success) {
         setUnassignedDrivers(unassignedRes.data.data);
       }
-    setIsLoading(false);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      showToast("Failed to fetch data.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {

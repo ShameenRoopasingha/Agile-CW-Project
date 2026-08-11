@@ -11,7 +11,7 @@ import "leaflet/dist/leaflet.css";
 
 
 export function RoutesOverview() {
-  const [activeTab, setActiveTab] = useState("Weekly Overview");
+  const [activeTab, setActiveTab] = useState("Fleet Assignment");
   const [routes, setRoutes] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -91,7 +91,7 @@ export function RoutesOverview() {
     try {
       await generateWeeklyRoutes({ weekStartDate });
       await fetchPlans(); // Refresh the plans list (newest will be selected automatically)
-      setActiveTab("Weekly Overview"); // Switch back to overview
+      setActiveTab("Fleet Assignment"); // Switch back to overview
     } catch (err: any) {
       setError(err.message || "Failed to generate routes");
     } finally {
@@ -217,7 +217,7 @@ export function RoutesOverview() {
 
       {/* Header Tabs */}
       <div className="flex gap-8 border-b border-gray-300/50 pb-2 shrink-0">
-        {["Weekly Overview", "Generate Routes", "Route Map View"].map((tab) => (
+        {["Fleet Assignment", "Generate Routes", "Route Map View"].map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -334,7 +334,7 @@ export function RoutesOverview() {
             </div>
           </Card>
         </div>
-      ) : activeTab === "Weekly Overview" ? (
+      ) : activeTab === "Fleet Assignment" ? (
         <Card className="bg-[#e6e9ef] shadow-[12px_12px_24px_#c4c7cc,-12px_-12px_24px_#ffffff] rounded-2xl border-none flex-1 flex flex-col min-h-[400px]">
           {/* Controls Row */}
           <div className="p-4 sm:p-6 border-b border-gray-300/50 flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -534,10 +534,10 @@ export function RoutesOverview() {
             <div className="flex flex-col items-center justify-center h-full">
               <Typography variant="h6" color="gray">No Route Selected</Typography>
               <Typography variant="small" color="gray" className="mb-4 text-center max-w-sm">
-                Go to the Weekly Overview and click the eye icon next to a route to view its path on the map.
+                Go to Fleet Assignment and click the eye icon next to a route to view its path on the map.
               </Typography>
               <button
-                onClick={() => setActiveTab("Weekly Overview")}
+                onClick={() => setActiveTab("Fleet Assignment")}
                 className="px-6 py-2 bg-[#e6e9ef] shadow-[4px_4px_8px_#c4c7cc,-4px_-4px_8px_#ffffff] rounded-xl text-[#145c39] font-bold text-sm hover:shadow-[inset_2px_2px_4px_#c4c7cc,inset_-2px_-2px_4px_#ffffff]"
               >
                 Go back to Overview
