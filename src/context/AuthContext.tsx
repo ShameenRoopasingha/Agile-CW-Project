@@ -67,6 +67,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (token: string, userData?: UserData, roleData?: Role) => {
     localStorage.setItem("accessToken", token);
+    localStorage.setItem("loginTime", new Date().toISOString());
     
     if (userData && roleData) {
        setUser(userData);
@@ -78,6 +79,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = () => {
     localStorage.removeItem("accessToken");
+    localStorage.removeItem("loginTime");
     setUser(null);
     setRole(null);
     // Use window.location instead of useNavigate because this is outside a router

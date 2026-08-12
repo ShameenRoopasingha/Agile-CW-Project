@@ -210,6 +210,32 @@ export async function saveCollectionPoint(payload: { collectionPointId: string }
   });
 }
 
+export async function getDriverMyRoutes() {
+  return apiClient("/drivers/my-routes", { method: "GET" });
+}
+
+// ── Driver Session Endpoints ───────────────────────────────────────────────
+
+export async function startDriverSession(payload: any) {
+  return apiClient("/driver-sessions/start", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  }, ROUTEG_API_BASE_URL);
+}
+
+export async function finishDriverSession(sessionId: string, payload: any) {
+  return apiClient(`/driver-sessions/${sessionId}/finish`, {
+    method: "PUT",
+    body: JSON.stringify(payload),
+  }, ROUTEG_API_BASE_URL);
+}
+
+export async function getDriverSessions(email: string) {
+  return apiClient(`/driver-sessions/driver/${email}`, {
+    method: "GET",
+  }, ROUTEG_API_BASE_URL);
+}
+
 // ── Admin Staff Endpoints ──────────────────────────────────────────────────
 
 export async function addStaff(payload: any) {

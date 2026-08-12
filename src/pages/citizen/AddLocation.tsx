@@ -147,13 +147,13 @@ export function AddLocation() {
           residentLatitude: selectedLocation.lat,
           residentLongitude: selectedLocation.lng
         });
-        
+
         if (res.collectionPoints && res.collectionPoints.success) {
-           navigate("/citizen/select-collection-point", { 
-             state: { collectionPoints: res.collectionPoints.data }
-           });
+          navigate("/citizen/select-collection-point", {
+            state: { collectionPoints: res.collectionPoints.data }
+          });
         } else {
-           setLocationError("Failed to fetch nearby collection points.");
+          setLocationError("Failed to fetch nearby collection points.");
         }
       } catch (err: any) {
         setLocationError(err.message || "An error occurred while saving location.");
@@ -182,7 +182,7 @@ export function AddLocation() {
       {/* ── Main Content ── */}
       <Card className="bg-[#e6e9ef] shadow-[12px_12px_24px_#c4c7cc,-12px_-12px_24px_#ffffff] rounded-2xl border-none flex-1 min-h-[600px]">
         <CardBody className="p-5 flex flex-col h-full gap-5">
-          
+
           {/* Controls */}
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
             <Button
@@ -205,13 +205,13 @@ export function AddLocation() {
           {/* Map Area */}
           <div className="flex-1 relative bg-[#e8edf3] rounded-2xl overflow-hidden shadow-inner border border-gray-200 min-h-[450px]">
             {(!apiKey || loadError) ? (
-               <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-100 p-6 text-center">
-                 <ExclamationTriangleIcon className="w-12 h-12 text-amber-500 mb-3" />
-                 <Typography className="text-lg font-bold text-gray-700">Map Unavailable</Typography>
-                 <Typography className="text-sm text-gray-500 mt-2">
-                   Please ensure your VITE_GOOGLE_MAPS_API_KEY is properly set in the .env file.
-                 </Typography>
-               </div>
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-100 p-6 text-center">
+                <ExclamationTriangleIcon className="w-12 h-12 text-amber-500 mb-3" />
+                <Typography className="text-lg font-bold text-gray-700">Map Unavailable</Typography>
+                <Typography className="text-sm text-gray-500 mt-2">
+                  Please ensure your VITE_GOOGLE_MAPS_API_KEY is properly set in the .env file.
+                </Typography>
+              </div>
             ) : !isLoaded ? (
               <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-100">
                 <div className="w-12 h-12 rounded-full border-4 border-t-green-500 border-green-200 animate-spin mb-4"></div>

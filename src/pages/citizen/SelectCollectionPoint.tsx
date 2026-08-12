@@ -71,8 +71,14 @@ export function SelectCollectionPoint() {
               residentLatitude: res.residentLatitude,
               residentLongitude: res.residentLongitude
             });
-            if (locRes.collectionPoints && locRes.collectionPoints.success) {
-              setPoints(locRes.collectionPoints.data);
+            if (locRes.collectionPoints) {
+              const pointsData = Array.isArray(locRes.collectionPoints) 
+                ? locRes.collectionPoints 
+                : locRes.collectionPoints.data || [];
+              setPoints(pointsData);
+              if (pointsData.length === 0) {
+                setError("No collection points found.");
+              }
             } else {
               setError("Failed to load collection points.");
             }
@@ -106,8 +112,9 @@ export function SelectCollectionPoint() {
     if (points.length > 0) {
       const bounds = new window.google.maps.LatLngBounds();
       points.forEach((p) => {
-        if (p.location?.coordinates) {
-          bounds.extend({ lng: p.location.coordinates[0], lat: p.location.coordinates[1] });
+        const coords = p.geometry?.coordinates || p.location?.coordinates;
+        if (coords) {
+          bounds.extend({ lng: coords[0], lat: coords[1] });
         }
       });
       map.fitBounds(bounds);
@@ -161,14 +168,23 @@ export function SelectCollectionPoint() {
               ) : (
                 <GoogleMap
                   mapContainerStyle={containerStyle}
-                  center={points[0] ? { lat: points[0].location.coordinates[1], lng: points[0].location.coordinates[0] } : { lat: 6.9271, lng: 79.8612 }}
+                  center={
+                    points[0] 
+                      ? { 
+                          lat: (points[0].geometry?.coordinates || points[0].location?.coordinates)[1], 
+                          lng: (points[0].geometry?.coordinates || points[0].location?.coordinates)[0] 
+                        } 
+                      : { lat: 6.9271, lng: 79.8612 }
+                  }
                   zoom={15}
                   onLoad={onMapLoad}
                   options={mapOptions}
                 >
                   {points.map((p) => {
-                    const lat = p.location.coordinates[1];
-                    const lng = p.location.coordinates[0];
+                    const coords = p.geometry?.coordinates || p.location?.coordinates;
+                    if (!coords) return null;
+                    const lat = coords[1];
+                    const lng = coords[0];
                     const isSelected = p._id === selectedPointId;
                     return (
                       <MarkerF

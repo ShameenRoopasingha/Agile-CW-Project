@@ -113,7 +113,7 @@ export function DriverManagement() {
 
   const getAssignedTruck = (driverId: string) => {
     const truck = detailedTrucks.find(t => t.assignedDriver === driverId || t.driverDetails?._id === driverId);
-    return truck ? `TRK-${truck._id.slice(-4).toUpperCase()}` : "Unassigned";
+    return truck ? truck.plateNo || `TRK-${truck._id.slice(-4).toUpperCase()}` : "Unassigned";
   };
 
   const onDutyCount = drivers.filter(d => d.status === "onduty").length;
@@ -269,8 +269,8 @@ export function DriverManagement() {
                       <td className={classes}>
                         {assignedUnit !== "Unassigned" ? (
                            <div className="bg-[#e6e9ef] shadow-[inset_2px_2px_4px_#c4c7cc,inset_-2px_-2px_4px_#ffffff] rounded px-3 py-2 inline-flex flex-col items-center justify-center">
-                              <span className="text-[10px] font-bold text-gray-500 uppercase">TRK</span>
-                              <span className="text-xs font-bold text-gray-800">{assignedUnit.split('-')[1]}</span>
+                              <span className="text-[10px] font-bold text-gray-500 uppercase">PLATE</span>
+                              <span className="text-xs font-bold text-gray-800">{assignedUnit.startsWith('TRK-') ? assignedUnit.split('-')[1] : assignedUnit}</span>
                            </div>
                         ) : (
                            <span className="text-gray-400 font-medium text-sm">{assignedUnit}</span>

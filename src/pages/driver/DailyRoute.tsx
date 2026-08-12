@@ -8,7 +8,8 @@ import {
   CheckCircleIcon,
   TruckIcon,
 } from "@heroicons/react/24/outline";
-import { useJsApiLoader, GoogleMap, MarkerF } from "@react-google-maps/api";
+import { useJsApiLoader, GoogleMap, MarkerF, Polyline, DirectionsRenderer } from "@react-google-maps/api";
+import { getDriverMyRoutes, getSingleRoute, finishDriverSession } from "../../lib/api";
 
 /* ─── Types ────────────────────────────────────────────────────────── */
 
@@ -19,6 +20,8 @@ interface RouteStop {
   time: string;
   status: "completed" | "current" | "upcoming";
   wasteType: string;
+  lat?: number;
+  lng?: number;
 }
 
 /* ─── Static Data ──────────────────────────────────────────────────── */
@@ -204,10 +207,93 @@ const DARK_MAP_STYLE = [
 /* ─── Component ────────────────────────────────────────────────────── */
 
 export function DailyRoute() {
-  const [stops] = useState(ROUTE_STOPS);
+  const [stops, setStops] = useState<RouteStop[]>(ROUTE_STOPS);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [currentLocation, setCurrentLocation] = useState<{ lat: number; lng: number } | null>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
+
+  const [assignedRoutes, setAssignedRoutes] = useState<any[]>([]);
+  const [truckDetails, setTruckDetails] = useState<any>(null);
+  const [routePolylines, setRoutePolylines] = useState<{lat: number, lng: number}[][]>([]);
+  
+  const [directions, setDirections] = useState<google.maps.DirectionsResult | null>(null);
+  const [lastNavLocation, setLastNavLocation] = useState<{lat: number, lng: number} | null>(null);
+  const [isFinishing, setIsFinishing] = useState(false);
+
+  useEffect(() => {
+    const fetchRoutes = async () => {
+      try {
+        const res = await getDriverMyRoutes();
+        if (res.truck) {
+          setTruckDetails(res.truck);
+          localStorage.setItem('currentTruckId', res.truck._id || res.truck.id);
+        }
+        
+        if (res.data && Array.isArray(res.data) && res.data.length > 0) {
+          setAssignedRoutes(res.data);
+          localStorage.setItem('currentRouteId', res.data[0].routeId || res.data[0]._id);
+          
+          const allLines: {lat: number, lng: number}[][] = [];
+          const allStops: RouteStop[] = [];
+
+          // We fetch the full route data for each assigned route to get the proper OSRM routeSegments
+          // because the basic route.coordinates array might be unordered or missing street curves.
+          const fullRoutes = await Promise.all(
+            res.data.map(async (route: any) => {
+              try {
+                const fullRouteRes = await getSingleRoute(route.routeId || route._id);
+                return fullRouteRes.data || fullRouteRes;
+              } catch (e) {
+                console.error("Failed to fetch full route details", e);
+                return route; // fallback to basic data
+              }
+            })
+          );
+
+          fullRoutes.forEach((route: any) => {
+            // Extract properly ordered route segments that follow roads
+            if (route.routeSegments && Array.isArray(route.routeSegments)) {
+              route.routeSegments.forEach((seg: any) => {
+                if (seg.coordinates && Array.isArray(seg.coordinates)) {
+                  allLines.push(seg.coordinates.map((p: number[]) => ({ lat: p[1], lng: p[0] })));
+                }
+              });
+            } else if (route.coordinates && Array.isArray(route.coordinates)) {
+              // Fallback to basic coordinates if segments are missing
+              allLines.push(route.coordinates.map((p: number[]) => ({ lat: p[1], lng: p[0] })));
+            }
+            
+            // Extract collection points (array of [lng, lat])
+            if (route.collectionPoints && Array.isArray(route.collectionPoints)) {
+              route.collectionPoints.forEach((cp: number[], index: number) => {
+                allStops.push({
+                  id: `S-${route.routeId || route._id}-${index}`,
+                  address: `Collection Point ${index + 1}`,
+                  area: route.clusterGroupId || "Route Area",
+                  time: "Pending",
+                  status: "upcoming",
+                  wasteType: "Mixed",
+                  lat: cp[1],
+                  lng: cp[0]
+                });
+              });
+            }
+          });
+
+          // Set the first stop as current if any exist
+          if (allStops.length > 0) {
+            allStops[0].status = "current";
+            setStops(allStops);
+          }
+
+          setRoutePolylines(allLines);
+        }
+      } catch (err) {
+        console.error("Failed to fetch driver routes", err);
+      }
+    };
+    fetchRoutes();
+  }, []);
 
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
   const { isLoaded, loadError } = useJsApiLoader({
@@ -222,21 +308,6 @@ export function DailyRoute() {
   // Geolocation tracking
   useEffect(() => {
     if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setCurrentLocation({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          });
-        },
-        (error) => {
-          console.error("Error getting location: ", error);
-          // Default to Colombo, Sri Lanka
-          setCurrentLocation({ lat: 6.9271, lng: 79.8612 });
-        },
-        { enableHighAccuracy: true }
-      );
-
       const watchId = navigator.geolocation.watchPosition(
         (position) => {
           setCurrentLocation({
@@ -245,16 +316,47 @@ export function DailyRoute() {
           });
         },
         (error) => {
-          console.error("Error watching location: ", error);
+          console.error("Error getting location:", error);
         },
         { enableHighAccuracy: true }
       );
-
       return () => navigator.geolocation.clearWatch(watchId);
-    } else {
-      setCurrentLocation({ lat: 6.9271, lng: 79.8612 });
     }
   }, []);
+
+  // Calculate Live Navigation Route
+  useEffect(() => {
+    if (!currentLocation || stops.length === 0 || !window.google) return;
+    
+    // Find the next active stop
+    const currentStop = stops.find((s) => s.status === 'current');
+    if (!currentStop || !currentStop.lat || !currentStop.lng) return;
+
+    // Throttle API requests by roughly ~50 meters difference
+    if (lastNavLocation) {
+       const latDiff = Math.abs(currentLocation.lat - lastNavLocation.lat);
+       const lngDiff = Math.abs(currentLocation.lng - lastNavLocation.lng);
+       if (latDiff < 0.0005 && lngDiff < 0.0005) return; 
+    }
+
+    setLastNavLocation(currentLocation);
+
+    const directionsService = new window.google.maps.DirectionsService();
+    directionsService.route(
+      {
+        origin: currentLocation,
+        destination: { lat: currentStop.lat, lng: currentStop.lng },
+        travelMode: window.google.maps.TravelMode.DRIVING,
+      },
+      (result, status) => {
+        if (status === window.google.maps.DirectionsStatus.OK) {
+          setDirections(result);
+        } else {
+          console.error(`Error fetching live directions: ${status}`);
+        }
+      }
+    );
+  }, [currentLocation, stops, lastNavLocation]);
 
   const mapOptions = useMemo(() => ({
     styles: isDarkMode ? DARK_MAP_STYLE : LIGHT_MAP_STYLE,
@@ -282,6 +384,15 @@ export function DailyRoute() {
 
   const onMapLoad = (map: google.maps.Map) => {
     mapRef.current = map;
+    if (routePolylines.length > 0 && window.google) {
+      const bounds = new window.google.maps.LatLngBounds();
+      routePolylines.forEach(line => {
+        line.forEach(point => {
+          bounds.extend(point);
+        });
+      });
+      map.fitBounds(bounds);
+    }
   };
 
   const onMapUnmount = () => {
@@ -300,10 +411,57 @@ export function DailyRoute() {
     }
   };
 
+  useEffect(() => {
+    if (mapRef.current && routePolylines.length > 0 && window.google) {
+      const bounds = new window.google.maps.LatLngBounds();
+      routePolylines.forEach(line => {
+        line.forEach(point => {
+          bounds.extend(point);
+        });
+      });
+      mapRef.current.fitBounds(bounds);
+      
+      // add a little padding
+      setTimeout(() => {
+         if (mapRef.current) {
+           mapRef.current.setZoom((mapRef.current.getZoom() || 15) - 1);
+         }
+      }, 300);
+    }
+  }, [routePolylines]);
+
   const handleRecenter = () => {
     if (mapRef.current && currentLocation) {
       mapRef.current.panTo(currentLocation);
-      mapRef.current.setZoom(15);
+      mapRef.current.setZoom(16);
+    }
+  };
+  
+  const handleCompleteRoute = async () => {
+    const sessionId = localStorage.getItem('activeDriverSessionId');
+    if (!sessionId) {
+      return alert("No active shift found. Please start your shift from the sidebar first.");
+    }
+    
+    if (!currentLocation) {
+      return alert("Waiting for live GPS location. Please ensure location services are enabled.");
+    }
+    
+    setIsFinishing(true);
+    try {
+      const coords = [currentLocation.lng, currentLocation.lat];
+
+      const res = await finishDriverSession(sessionId, { coordinates: coords });
+      if (res.success) {
+        localStorage.removeItem('activeDriverSessionId');
+        alert("Shift completed successfully!");
+        window.location.reload(); 
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Failed to complete shift");
+    } finally {
+      setIsFinishing(false);
     }
   };
 
@@ -323,10 +481,10 @@ export function DailyRoute() {
               </div>
               <div>
                 <Typography className="font-bold text-base text-gray-800">
-                  {currentStop?.address || "Route Complete"}
+                  {truckDetails ? `Truck: ${truckDetails.plateNo}` : "Loading..."}
                 </Typography>
                 <Typography className="text-sm text-gray-500 font-medium">
-                  0.4 miles · 3 mins
+                  {currentStop?.address || "Route Complete"}
                 </Typography>
               </div>
             </div>
@@ -454,6 +612,28 @@ export function DailyRoute() {
                           title="Your Location"
                         />
                       )}
+                      {routePolylines.map((line, idx) => (
+                        <Polyline
+                          key={`poly-${idx}`}
+                          path={line}
+                          options={{ strokeColor: '#186f45', strokeWeight: 5, strokeOpacity: 0.8 }}
+                        />
+                      ))}
+                      
+                      {directions && (
+                        <DirectionsRenderer
+                          directions={directions}
+                          options={{
+                            suppressMarkers: true, // we handle our own markers
+                            polylineOptions: {
+                              strokeColor: '#3b82f6', // Bright blue for live routing path
+                              strokeWeight: 6,
+                              strokeOpacity: 0.9,
+                              zIndex: 10 // Draw over the green planned route
+                            }
+                          }}
+                        />
+                      )}
                     </GoogleMap>
 
                     {/* Controls & Overlays */}
@@ -516,9 +696,13 @@ export function DailyRoute() {
 
               {/* Complete Route Button */}
               <div className="p-3">
-                <button className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-white font-bold bg-[#1a5c2e] shadow-[4px_4px_10px_#c4c7cc,-4px_-4px_10px_#ffffff] hover:bg-[#155025] active:shadow-[inset_3px_3px_6px_#0f3a1b,inset_-3px_-3px_6px_#1f7e37] transition-all duration-200">
+                <button 
+                  onClick={handleCompleteRoute}
+                  disabled={isFinishing}
+                  className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-white font-bold bg-[#1a5c2e] shadow-[4px_4px_10px_#c4c7cc,-4px_-4px_10px_#ffffff] hover:bg-[#155025] active:shadow-[inset_3px_3px_6px_#0f3a1b,inset_-3px_-3px_6px_#1f7e37] transition-all duration-200 disabled:opacity-70"
+                >
                   <FlagIcon className="w-5 h-5" />
-                  Complete Route
+                  {isFinishing ? "Completing..." : "Complete Route"}
                 </button>
               </div>
             </CardBody>
@@ -545,7 +729,7 @@ export function DailyRoute() {
               </div>
 
               {/* Stops list */}
-              <div className="space-y-1">
+              <div className="space-y-1 overflow-y-auto max-h-[450px] pr-2 custom-scrollbar">
                 {stops.map((stop, index) => (
                   <div
                     key={stop.id}

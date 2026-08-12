@@ -13,6 +13,8 @@ import {
 } from "@heroicons/react/24/outline";
 import { Typography, IconButton } from "../lib/mt-components";
 import logo from "../assets/logo.png";
+import { useAuth } from "../context/AuthContext";
+import { startDriverSession } from "../lib/api";
 
 const NAVIGATION = [
   { name: "Daily Route", href: "/driver/daily-route", icon: MapIcon },
@@ -26,6 +28,9 @@ export function DriverLayout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const navigate = useNavigate();
 
+  const { logout, user } = useAuth();
+  const [isStartingShift, setIsStartingShift] = useState(false);
+
   const handleLogoutClick = (e: React.MouseEvent) => {
     e.preventDefault();
     setShowLogoutDialog(true);
@@ -33,13 +38,62 @@ export function DriverLayout({ children }: { children: React.ReactNode }) {
 
   const handleConfirmLogout = () => {
     setShowLogoutDialog(false);
-    localStorage.removeItem("accessToken");
+    logout();
     navigate("/login");
+  };
+
+  const handleStartShift = () => {
+    if (!user || !user.email) return alert("User email not found");
+    setIsStartingShift(true);
+    
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          try {
+            const routeId = localStorage.getItem('currentRouteId');
+            const truckId = localStorage.getItem('currentTruckId');
+            const loginTimeStr = localStorage.getItem('loginTime');
+            const startTime = loginTimeStr ? new Date(loginTimeStr) : new Date();
+            
+            const payload: any = {
+              driverEmail: user.email,
+              coordinates: [position.coords.longitude, position.coords.latitude],
+              startTime: startTime
+            };
+            
+            if (routeId) payload.routeId = routeId;
+            if (truckId) payload.truckId = truckId;
+
+            const res = await startDriverSession(payload);
+            if (res.success && res.session) {
+              localStorage.setItem('activeDriverSessionId', res.session._id);
+              // Force a state update to re-render the button
+              setIsStartingShift(false);
+            }
+          } catch (err) {
+            console.error(err);
+            alert("Failed to start shift");
+            setIsStartingShift(false);
+          }
+        },
+        (error) => {
+          console.error(error);
+          alert("Could not get location to start shift");
+          setIsStartingShift(false);
+        },
+        { enableHighAccuracy: true }
+      );
+    } else {
+      alert("Geolocation is not supported by your browser");
+      setIsStartingShift(false);
+    }
   };
 
   // Current date for header
   const now = new Date();
   const dateStr = now.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" });
+  
+  const activeSessionId = localStorage.getItem('activeDriverSessionId');
 
   return (
     <div className="flex h-screen bg-[#e6e9ef] overflow-hidden">
@@ -77,12 +131,20 @@ export function DriverLayout({ children }: { children: React.ReactNode }) {
               <UserCircleIcon className="w-9 h-9 text-gray-500" />
             </div>
             <div>
-              <Typography className="font-bold text-sm text-gray-800">Driver ID: #4492</Typography>
-              <Typography className="text-[11px] text-gray-500 font-medium">Shift: Morning (06:00 - 14:00)</Typography>
+              <Typography className="font-bold text-sm text-gray-800">{user?.name || "Driver"}</Typography>
+              <Typography className="text-[11px] text-gray-500 font-medium">Shift: Morning</Typography>
             </div>
           </div>
-          <button className="w-full py-2 rounded-xl text-sm font-bold text-white bg-[#629955] shadow-[4px_4px_8px_#4e7a44,-4px_-4px_8px_#76b866] hover:shadow-[inset_2px_2px_4px_#4e7a44,inset_-2px_-2px_4px_#76b866] active:shadow-[inset_3px_3px_6px_#4e7a44,inset_-3px_-3px_6px_#76b866] transition-all duration-200">
-            Start Shift
+          <button 
+            onClick={handleStartShift}
+            disabled={!!activeSessionId || isStartingShift}
+            className={`w-full py-2 rounded-xl text-sm font-bold text-white transition-all duration-200 ${
+              activeSessionId 
+                ? "bg-amber-500 shadow-[inset_2px_2px_4px_rgba(0,0,0,0.1)]" 
+                : "bg-[#629955] shadow-[4px_4px_8px_#4e7a44,-4px_-4px_8px_#76b866] hover:shadow-[inset_2px_2px_4px_#4e7a44,inset_-2px_-2px_4px_#76b866]"
+            }`}
+          >
+            {activeSessionId ? "Shift In Progress" : isStartingShift ? "Starting..." : "Start Shift"}
           </button>
         </div>
 
